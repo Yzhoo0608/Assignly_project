@@ -1,0 +1,42 @@
+<!-- src/app/profile/profile.page.html -->
+
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Profile</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Avatar -->
+  <ion-card class="profile-card">
+    <ion-card-content class="ion-text-center">
+      <img [src]="user.avatar || 'https://cdn-icons-png.flaticon.com/512/1946/1946429.png'" class="avatar" />
+      <ion-button fill="clear" (click)="fileInput.click()">Change Avatar</ion-button>
+      <input #fileInput type="file" hidden accept="image/*" (change)="changeAvatar($event)" />
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Personal & Academic Info -->
+  <ion-list>
+    <ion-item><ion-label position="floating">Full Name</ion-label><ion-input [(ngModel)]="user.name"></ion-input></ion-item>
+    <ion-item><ion-label position="floating">Email</ion-label><ion-input [(ngModel)]="user.email" type="email" readonly></ion-input></ion-item>
+    <ion-item><ion-label position="floating">Bio</ion-label><ion-textarea [(ngModel)]="user.bio"></ion-textarea></ion-item>
+    <ion-item><ion-label position="floating">Institution</ion-label><ion-input [(ngModel)]="user.institution"></ion-input></ion-item>
+    <ion-item><ion-label position="floating">Course</ion-label><ion-input [(ngModel)]="user.course"></ion-input></ion-item>
+    <ion-item><ion-label position="floating">Semester</ion-label><ion-input [(ngModel)]="user.semester"></ion-input></ion-item>
+  </ion-list>
+
+  <!-- Progress -->
+  <ion-card>
+    <ion-card-header><ion-card-title>Progress Overview</ion-card-title></ion-card-header>
+    <ion-card-content>
+      <p>Completed Tasks: {{user.completedTasks}} / {{user.totalTasks}}</p>
+      <ion-progress-bar [value]="(user.completedTasks ?? 0) / (user.totalTasks ?? 1)"></ion-progress-bar>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-button expand="block" color="primary" (click)="saveProfile()">Save Profile</ion-button>
+  <ion-button expand="block" color="danger" (click)="logout()">Logout</ion-button>
+</ion-content>
+
+

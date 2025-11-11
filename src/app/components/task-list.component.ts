@@ -1,20 +1,12 @@
 // src/app/components/task-list.component.ts
-// Updated Cache and Offline Functionality in Task List Component
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormsModule,
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { TaskService, Task } from '../services/task.service';
-import { Observable } from 'rxjs';
 import { Subscription } from 'rxjs';
- 
-// Task List Component
+import { TaskService } from '../services/task.service';
+import { Task } from '../services/task';
+
 @Component({
   selector: 'app-task-list',
   standalone: true,
@@ -22,85 +14,68 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./task-list.component.scss'],
   imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule],
 })
- 
-// TaskListComponent class
-export class TaskListComponent implements OnInit {
-  tasks$!: Observable<Task[]>;
-  allTasks: Task[] = []; // store all tasks locally
-  filteredTasks: Task[] = []; // list shown after search filter
+export class TaskListComponent implements OnInit, OnDestroy {
+  tasks: Task[] = [];
+  filteredTasks: Task[] = [];
+  groupedTasks: { [key: string]: Task[] } = {};
   taskForm!: FormGroup;
   isAdding = false;
   editingTask: Task | null = null;
   minDate: string;
-  searchTerm = '';  // holds user search input
-  subjectError = '';   // Subject required error
-  deadlineError = '';  // Deadline required error
-  duplicateError = '';  // Holds error message for duplicate
- 
+  searchTerm = '';
+  subjectError = '';
+  deadlineError = '';
+  duplicateError = '';
   private tasksSub?: Subscription;
- 
   @ViewChild('formContainer') formContainer!: ElementRef;
- 
-  constructor(private taskService: TaskService, private fb: FormBuilder) {
-    const today = new Date();
-    this.minDate = today.toISOString().split('T')[0];
+
+  constructor(private fb: FormBuilder, private taskService: TaskService) {
+    this.minDate = new Date().toISOString().split('T')[0];
   }
 
-  // Add getters
-  get subject() {
-    return this.taskForm.get('subject');
-  }
-
-  get deadline() {
-    return this.taskForm.get('deadline');
-  }
- 
   ngOnInit() {
-    // Subscribe to observable to get live task updates
-    this.tasks$ = this.taskService.tasks$;
- 
-    this.tasksSub = this.tasks$.subscribe(tasks => {
-      this.allTasks = tasks;
-      this.applyFilter(); // initialize filtered list
+    this.tasksSub = this.taskService.tasks$.subscribe(tasks => {
+      this.tasks = tasks;
+      this.applyFilter();
     });
- 
-    // Initialize the form
+
     this.taskForm = this.fb.group({
       subject: ['', Validators.required],
       deadline: ['', Validators.required],
       status: ['not started', Validators.required],
     });
   }
- 
+
   ngOnDestroy() {
     this.tasksSub?.unsubscribe();
   }
- 
-  // Filter tasks based on the search input
+
   applyFilter() {
     const term = this.searchTerm.trim().toLowerCase();
-    if (!term) {
-      this.filteredTasks = [...this.allTasks];
-    } else {
-      this.filteredTasks = this.allTasks.filter(task =>
-        task.subject.toLowerCase().includes(term) ||
-        task.status.toLowerCase().includes(term)
-      );
+    this.filteredTasks = !term
+      ? [...this.tasks]
+      : this.tasks.filter(task =>
+          (task.subject || '').toLowerCase().includes(term) ||
+          (task.status || '').toLowerCase().includes(term)
+        );
+    this.groupTasksByStatus();
+  }
+
+  groupTasksByStatus() {
+    this.groupedTasks = { 'not started': [], 'in progress': [], 'completed': [] };
+    for (const task of this.filteredTasks) {
+      const status = task.status || 'not started';
+      this.groupedTasks[status].push(task);
     }
   }
 
-  // Add or update task
   async addTask() {
-    // Reset previous errors
-    this.duplicateError = '';
     this.subjectError = '';
     this.deadlineError = '';
-
-    // Trigger Angular form validation
+    this.duplicateError = '';
     this.taskForm.markAllAsTouched();
     const formValue = this.taskForm.value;
 
-    // Manual field checks for empty inputs
     if (!formValue.subject?.trim()) {
       this.subjectError = '* Required';
       return;
@@ -111,11 +86,9 @@ export class TaskListComponent implements OnInit {
       return;
     }
 
-    // Prevent duplicate subject names
-    const duplicate = this.allTasks.some(
-      t =>
-        t.subject.toLowerCase() === formValue.subject.trim().toLowerCase() &&
-        t !== this.editingTask
+    const duplicate = this.tasks.some(
+      t => (t.subject || '').toLowerCase() === formValue.subject.trim().toLowerCase() &&
+           t !== this.editingTask
     );
 
     if (duplicate) {
@@ -123,88 +96,59 @@ export class TaskListComponent implements OnInit {
       return;
     }
 
-    // Build task object
     const task: Task = {
+      id: this.editingTask?.id,
       subject: formValue.subject.trim(),
       deadline: formValue.deadline,
       status: formValue.status,
     };
 
-    const editing = this.editingTask;
+    if (this.editingTask) {
+      await this.taskService.updateTask(task);
+    } else {
+      await this.taskService.addTask(task);
+    }
 
-    // Reset UI form state
     this.isAdding = false;
     this.editingTask = null;
     this.taskForm.reset({ status: 'not started' });
-
-    // Save to service
-    try {
-      if (editing) {
-        await this.taskService.updateTask({ ...editing, ...task });
-      } else {
-        await this.taskService.addTask(task);
-      }
-    } catch (err) {
-      console.warn('Offline action (will sync later):', err);
-    }
   }
-  // Edit task
+
   editTask(task: Task) {
     this.isAdding = true;
     this.editingTask = task;
- 
     this.taskForm.patchValue({
       subject: task.subject,
       deadline: task.deadline,
       status: task.status,
     });
- 
     setTimeout(() => {
       this.formContainer?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 200);
   }
- 
-  // Delete task
+
   async deleteTask(task: Task) {
     if (!confirm(`Delete task "${task.subject}"?`)) return;
-    try {
-      await this.taskService.deleteTask(task);
-    } catch (err) {
-      console.warn('Offline delete (will sync later):', err);
-    }
+    await this.taskService.deleteTask(task);
   }
- 
-  // Toggle Add and Edit section
+
+  async updateStatus(task: Task, event: any) {
+    const newStatus = event.detail.value;
+    task.status = newStatus;
+    await this.taskService.updateTask(task);
+  }
+
   toggleAdd() {
     this.isAdding = !this.isAdding;
-
-    // Always reset everything when toggling
     this.editingTask = null;
     this.taskForm.reset({ status: 'not started' });
     this.duplicateError = '';
     this.subjectError = '';
     this.deadlineError = '';
-
     if (this.isAdding) {
       setTimeout(() => {
         this.formContainer?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 200);
     }
   }
-
-  // Update tasks status
-  async updateStatus(task: Task, event: any) {
-    const newStatus = event.detail.value;
-    const updatedTask = { ...task, status: newStatus };
- 
-    try {
-      await this.taskService.updateTask(updatedTask);
-    } catch (err) {
-      console.warn('Offline status update (will sync later):', err);
-    }
-  }
 }
- 
-
-
-

@@ -1,23 +1,62 @@
-<!-- src/app/home/home.page.html -->
-<ion-header class="header">
-  <ion-toolbar color="primary">
-    <div class="logo-container">
-      <ion-icon name="checkbox-outline" class="logo-icon"></ion-icon>
-      <ion-title class="logo-text">Assignly</ion-title>
-    </div>
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Tasks</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content fullscreen class="ion-padding custom-bg">
-  <app-task-list></app-task-list>
+<ion-content class="ion-padding">
+  <!-- Search -->
+  <ion-searchbar
+    placeholder="Search tasks"
+    [(ngModel)]="searchTerm"
+    (ionInput)="applyFilter()"
+  ></ion-searchbar>
+
+  <!-- Add Task Button -->
+  <ion-button expand="full" (click)="toggleAdd()">
+    {{ isAdding ? 'Cancel' : 'Add Task' }}
+  </ion-button>
+
+  <!-- Add Task Form -->
+  <div *ngIf="isAdding" class="ion-padding">
+    <ion-item>
+      <ion-label position="floating">Task Subject</ion-label>
+      <ion-input [(ngModel)]="newTaskSubject"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Deadline</ion-label>
+      <ion-datetime [(ngModel)]="newTaskDeadline"></ion-datetime>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Status</ion-label>
+      <ion-select [(ngModel)]="newTaskStatus">
+        <ion-select-option value="not started">Not Started</ion-select-option>
+        <ion-select-option value="in progress">In Progress</ion-select-option>
+        <ion-select-option value="completed">Completed</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-button expand="full" (click)="addTask()">Save Task</ion-button>
+  </div>
+
+  <!-- Task List -->
+  <ion-list>
+    <ion-item *ngFor="let task of tasks">
+      <ion-label [class.completed]="task.status === 'completed'">
+        {{ task.subject }}
+      </ion-label>
+
+      <ion-toggle
+        slot="end"
+        [checked]="task.status === 'completed'"
+        (ionChange)="toggleTaskStatus(task)"
+      ></ion-toggle>
+
+      <ion-button slot="end" color="danger" (click)="deleteTask(task)">
+        Delete
+      </ion-button>
+    </ion-item>
+  </ion-list>
 </ion-content>
-
-
-
-
-
-
-
-
-
-

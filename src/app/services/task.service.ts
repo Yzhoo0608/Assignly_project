@@ -1,111 +1,116 @@
 // src/app/services/task.service.ts
-// Updated Cache and Offline Functionality in Task Service
 import { Injectable } from '@angular/core';
-import { Firestore, collection, collectionData, CollectionReference, addDoc, doc, updateDoc, deleteDoc} from '@angular/fire/firestore';
-import { Observable, from, of, concat, BehaviorSubject } from 'rxjs';
-import { map, tap, catchError, filter, switchMap } from 'rxjs/operators';
-import { Storage } from '@ionic/storage-angular';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { Task } from './task';
+import { Firestore, collection, collectionData, addDoc, doc, updateDoc, deleteDoc, getDocs } from '@angular/fire/firestore';
+import { AuthService, AppUser } from './auth.service';
 
-// Define Task interface
-export interface Task {
-  id?: string;
-  subject: string;
-  deadline: string;
-  status: string;
-}
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class TaskService {
-  private storageReady: Promise<void>; // To track storage initialization
-  private tasksSubject = new BehaviorSubject<Task[]>([]) // Holds the current list of tasks
-  tasks$: Observable<Task[]> = this.tasksSubject.asObservable(); // Public observable for tasks
-  
-  constructor(private firestore: Firestore, private storage: Storage) {
-    this.storageReady = this.initStorage(); // Initialize storage
-    this.loadTasks(); // Load tasks from cache and network
+  private _tasks = new BehaviorSubject<Task[]>([]);
+  tasks$ = this._tasks.asObservable();
+  private CACHE_KEY = 'cached_tasks';
+
+  constructor(private firestore: Firestore, private authService: AuthService) {
+    this.loadCachedTasks();
+
+    // Reload tasks when user logs in/out
+    this.authService.user$.subscribe(user => {
+      if (user) this.loadTasks(user.uid);
+      else this._tasks.next([]);
+    });
   }
 
-  // Initialize Ionic Storage
-  async initStorage(): Promise<void> {
-    await this.storage.create();
+  /** Load cached tasks from localStorage */
+  private loadCachedTasks() {
+    const cached = localStorage.getItem(this.CACHE_KEY);
+    if (cached) {
+      try {
+        const parsed: any[] = JSON.parse(cached);
+        this._tasks.next(parsed.map(t => this.normalizeTask(t)));
+      } catch (err) {
+        console.error('Error loading cached tasks:', err);
+      }
+    }
   }
 
-  // Load tasks from cache and network
-  private loadTasks() {
-    const storageReady$ = from(this.storageReady);
-
-    // Load tasks from local storage (cache)
-    const cache$ = from(this.storage.get('cachedTasks')).pipe(
-      map((cached: Task[] | null) => cached ?? []),
-      tap(tasks => console.log('Serving from cache', tasks)),
-      map(tasks => this.sortTasks(tasks)),
-      catchError(() => of([] as Task[]))
-    );
-
-    // Load tasks from Firestore (network)
-    const tasksCollection = collection(this.firestore, 'tasks') as CollectionReference<Task>;
-
-    const network$ = collectionData(tasksCollection, { idField: 'id' }).pipe(
-      catchError(() => of([] as Task[])),
-      filter((tasks: Task[]) => Array.isArray(tasks) && tasks.length > 0),
-      tap(tasks => {
-        this.tasksSubject.next(this.sortTasks(tasks));
-        this.storage.set('cachedTasks', tasks).catch(e => console.error('Failed to write cache', e));
-      })
-    );
-
-    // Serve cached tasks first, then update with network tasks
-    storageReady$.pipe(switchMap(() => concat(cache$, network$))).subscribe();
+  /** Cache tasks to localStorage */
+  private cacheTasks(tasks: Task[]) {
+    localStorage.setItem(this.CACHE_KEY, JSON.stringify(tasks));
   }
 
-  // Sort tasks by deadline
-  private sortTasks(tasks: Task[]): Task[] {
-    return tasks.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+  /** Normalize task object */
+  private normalizeTask(task: any): Task {
+    return {
+      id: task.id,
+      subject: task.subject || 'Untitled',
+      deadline: task.deadline || new Date().toISOString().split('T')[0],
+      status: task.status || 'not started',
+    };
   }
 
-  // Add a new task
+  /** Load tasks from Firestore */
+  private async loadTasks(uid: string) {
+    try {
+      const tasksCol = collection(this.firestore, 'users', uid, 'tasks');
+      const snapshot = await getDocs(tasksCol);
+      const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as Task) }));
+      const normalized = tasks.map(t => this.normalizeTask(t));
+      this._tasks.next(normalized);
+      this.cacheTasks(normalized);
+    } catch (err) {
+      console.error('Failed to load tasks:', err);
+    }
+  }
+
+  /** Get current logged-in user */
+  private async getCurrentUser(): Promise<AppUser> {
+    const user = await firstValueFrom(this.authService.user$);
+    if (!user) throw new Error('User not logged in');
+    return user;
+  }
+
+  /** Add a new task */
   async addTask(task: Task) {
-    const current = this.tasksSubject.getValue();
-    const updated = [...current, task];
-    this.tasksSubject.next(this.sortTasks(updated));
-    await this.storage.set('cachedTasks', updated);
+    const user = await this.getCurrentUser();
+    const tasksCol = collection(this.firestore, 'users', user.uid, 'tasks');
+    const docRef = await addDoc(tasksCol, {
+      subject: task.subject,
+      status: task.status,
+      deadline: task.deadline,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
-    try {
-      const tasksRef = collection(this.firestore, 'tasks') as CollectionReference<Task>;
-      await addDoc(tasksRef, task);
-    } catch (err) {
-      console.warn('Offline add (will sync later):', err);
-    }
+    const newTask: Task = { id: docRef.id, ...task };
+    const updatedTasks = [...this._tasks.value, newTask];
+    this._tasks.next(updatedTasks);
+    this.cacheTasks(updatedTasks);
   }
 
-  // Update an existing task
+  /** Update existing task */
   async updateTask(task: Task) {
-    const current = this.tasksSubject.getValue();
-    const updated = current.map(t => (t.id === task.id ? task : t));
-    this.tasksSubject.next(this.sortTasks(updated));
-    await this.storage.set('cachedTasks', updated);
+    if (!task.id) throw new Error('Task ID required');
+    const user = await this.getCurrentUser();
+    const taskDoc = doc(this.firestore, 'users', user.uid, 'tasks', task.id);
+    await updateDoc(taskDoc, { ...task, updatedAt: new Date() });
 
-    try {
-      const taskDocRef = doc(this.firestore, `tasks/${task.id}`);
-      await updateDoc(taskDocRef, { ...task });
-    } catch (err) {
-      console.warn('Offline update (will sync later):', err);
-    }
+    const updatedTasks = this._tasks.value.map(t => (t.id === task.id ? task : t));
+    this._tasks.next(updatedTasks);
+    this.cacheTasks(updatedTasks);
   }
 
-  // Delete a task
+  /** Delete a task */
   async deleteTask(task: Task) {
-    const current = this.tasksSubject.getValue();
-    const updated = current.filter(t => t.id !== task.id);
-    this.tasksSubject.next(updated);
-    await this.storage.set('cachedTasks', updated);
+    if (!task.id) throw new Error('Task ID required');
+    const user = await this.getCurrentUser();
+    const taskDoc = doc(this.firestore, 'users', user.uid, 'tasks', task.id);
+    await deleteDoc(taskDoc);
 
-    try {
-      const taskDocRef = doc(this.firestore, `tasks/${task.id}`);
-      await deleteDoc(taskDocRef);
-    } catch (err) {
-      console.warn('Offline delete (will sync later):', err);
-    }
+    const remainingTasks = this._tasks.value.filter(t => t.id !== task.id);
+    this._tasks.next(remainingTasks);
+    this.cacheTasks(remainingTasks);
   }
 }
-

@@ -1,8 +1,7 @@
-import { Injectable } from '@angular/core';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class Task {
-  
+// src/app/services/task.ts 
+export interface Task {
+  id?: string;
+  subject: string;   // main title
+  deadline: string;
+  status: 'not started' | 'in progress' | 'completed';
 }

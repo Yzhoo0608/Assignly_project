@@ -9,24 +9,22 @@ import { routes } from './app/app.routes';
 import { environment } from './environments/environment';
 import { provideAnimations } from '@angular/platform-browser/animations';
 
-// Firebase imports (AngularFire v20)
+// Modular Firebase (v20)
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideAuth, getAuth } from '@angular/fire/auth';
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideIonicAngular(),
     provideRouter(routes),
     provideAnimations(),
-    
 
-    // These are fine as direct providers now
+    // Firebase initialization
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
+    provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
 
-    // Ionic Storage still uses importProvidersFrom
     importProvidersFrom(IonicStorageModule.forRoot()),
   ],
 }).catch(err => console.error(err));
-
-

@@ -1,3 +1,4 @@
+// src/environments/firebase.config.ts
 export const firebaseConfig = {
   apiKey: "AIzaSyDKKef4mg3Q3RiPm762YCtbgQJeiMhgB9g",
   authDomain: "assignly-a784f.firebaseapp.com",
