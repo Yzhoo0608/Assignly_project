@@ -49,9 +49,7 @@ export interface AppUser {
   totalTasks?: number;
 
   // Add these fields
-  institution?: string;
   course?: string;
-  semester?: string;
 
   settings?: {
     darkMode?: boolean;
@@ -209,6 +207,7 @@ export class AuthService {
       profile: {
         name: user.name,
         bio: user.bio,
+        course: user.course,
         avatar: user.avatar,
         email: user.email, 
       },

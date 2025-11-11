@@ -22,9 +22,7 @@ user: AppUser = {
   bio: '',
   completedTasks: 0,
   totalTasks: 0,
-  institution: '',
   course: '',
-  semester: '',
   settings: {}
 };
 
