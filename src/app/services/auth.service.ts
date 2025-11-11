@@ -18,9 +18,15 @@ import {
   addDoc,
   getDocs,
   deleteDoc,
+  query,
+  where,
+  getCountFromServer,
 } from '@angular/fire/firestore';
 import { BehaviorSubject, Observable } from 'rxjs';
 
+// ---------------------------
+// TYPES
+// ---------------------------
 export type SortOption = 'deadline' | 'subject' | 'completion';
 export type TaskStatus = 'not started' | 'in progress' | 'completed';
 
@@ -29,33 +35,36 @@ export interface Task {
   subject: string;
   status: TaskStatus;
   deadline: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface AppUser {
   uid: string;
   email: string | null;
   name: string;
+  bio?: string;
+  avatar?: string;
+  completedTasks?: number;
+  totalTasks?: number;
+
+  // Add these fields
   institution?: string;
   course?: string;
   semester?: string;
-  bio?: string;
-  avatar?: string;
-
-  completedTasks?: number;
-  totalTasks?: number;
 
   settings?: {
     darkMode?: boolean;
     offlineMode?: boolean;
-    notifications?: {
-      taskReminders?: boolean;
-    };
-    taskPreferences?: {
-      sortBy?: SortOption;
-    };
+    notifications?: { taskReminders?: boolean };
+    taskPreferences?: { sortBy?: SortOption };
   };
 }
 
+
+// ---------------------------
+// SERVICE
+// ---------------------------
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private auth: Auth = inject(Auth);
@@ -67,6 +76,9 @@ export class AuthService {
     this.initAuthListener();
   }
 
+  // ---------------------------
+  // AUTH SECTION
+  // ---------------------------
   private initAuthListener() {
     onAuthStateChanged(this.auth, async (user) => {
       if (user) {
@@ -85,9 +97,7 @@ export class AuthService {
     const defaultProfile = {
       name,
       email: user.email,
-      institution: '',
       course: '',
-      semester: '',
       bio: '',
       avatar: 'https://cdn-icons-png.flaticon.com/512/1946/1946429.png',
     };
@@ -121,7 +131,6 @@ export class AuthService {
   async login(email: string, password: string): Promise<AppUser> {
     const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
     const user = userCredential.user;
-
     let appUser = await this.loadUserProfile(user.uid);
 
     if (!appUser) {
@@ -199,68 +208,69 @@ export class AuthService {
     await updateDoc(userDoc, {
       profile: {
         name: user.name,
-        institution: user.institution,
-        course: user.course,
-        semester: user.semester,
         bio: user.bio,
         avatar: user.avatar,
+        email: user.email, 
       },
     });
     const updated = await this.loadUserProfile(user.uid);
     this.userSubject.next(updated);
   }
 
-  // ---------------- TASK METHODS ----------------
+  // ---------------------------
+  // TASK SECTION (per-user)
+  // ---------------------------
 
   async addTask(uid: string, task: Task): Promise<Task> {
-    const tasksCol = collection(doc(this.firestore, `users/${uid}`), 'tasks');
+    const tasksCol = collection(this.firestore, 'users', uid, 'tasks');
     const taskDoc = await addDoc(tasksCol, {
       subject: task.subject,
       status: task.status,
       deadline: task.deadline,
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
-    // update progress
     await this.updateProgress(uid);
-
     return { id: taskDoc.id, ...task };
   }
 
   async updateTask(uid: string, task: Task) {
     if (!task.id) throw new Error('Task ID is required');
-    const taskDoc = doc(this.firestore, `users/${uid}/tasks/${task.id}`);
+    const taskDoc = doc(this.firestore, 'users', uid, 'tasks', task.id);
     await updateDoc(taskDoc, {
       subject: task.subject,
       status: task.status,
       deadline: task.deadline,
+      updatedAt: new Date(),
     });
 
     await this.updateProgress(uid);
   }
 
   async deleteTask(uid: string, taskId: string) {
-    const taskDoc = doc(this.firestore, `users/${uid}/tasks/${taskId}`);
+    const taskDoc = doc(this.firestore, 'users', uid, 'tasks', taskId);
     await deleteDoc(taskDoc);
-
     await this.updateProgress(uid);
   }
 
   async getTasks(uid: string): Promise<Task[]> {
-    const tasksCol = collection(doc(this.firestore, `users/${uid}`), 'tasks');
+    const tasksCol = collection(this.firestore, 'users', uid, 'tasks');
     const snapshot = await getDocs(tasksCol);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as Task) }));
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as Task) }));
   }
 
   private async updateProgress(uid: string) {
-    const tasks = await this.getTasks(uid);
-    const completedTasks = tasks.filter(t => t.status === 'completed').length;
-    const totalTasks = tasks.length;
+    const tasksCol = collection(this.firestore, 'users', uid, 'tasks');
+    const totalCount = (await getCountFromServer(tasksCol)).data().count;
 
-    const userDoc = doc(this.firestore, `users/${uid}`);
+    const completedQuery = query(tasksCol, where('status', '==', 'completed'));
+    const completedCount = (await getCountFromServer(completedQuery)).data().count;
+
+    const userDoc = doc(this.firestore, 'users', uid);
     await updateDoc(userDoc, {
-      'progress.completedTasks': completedTasks,
-      'progress.totalTasks': totalTasks,
+      'progress.completedTasks': completedCount,
+      'progress.totalTasks': totalCount,
     });
 
     const updated = await this.loadUserProfile(uid);

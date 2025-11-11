@@ -90,17 +90,27 @@ export class TaskService {
     this.cacheTasks(updatedTasks);
   }
 
-  /** Update existing task */
   async updateTask(task: Task) {
     if (!task.id) throw new Error('Task ID required');
     const user = await this.getCurrentUser();
     const taskDoc = doc(this.firestore, 'users', user.uid, 'tasks', task.id);
-    await updateDoc(taskDoc, { ...task, updatedAt: new Date() });
 
-    const updatedTasks = this._tasks.value.map(t => (t.id === task.id ? task : t));
+    // Only send the fields Firestore expects
+    await updateDoc(taskDoc, {
+      subject: task.subject,
+      status: task.status,
+      deadline: task.deadline,
+      updatedAt: new Date(),
+    });
+
+    // Update local cache
+    const updatedTasks = this._tasks.value.map(t =>
+      t.id === task.id ? { ...t, status: task.status, subject: task.subject, deadline: task.deadline } : t
+    );
     this._tasks.next(updatedTasks);
     this.cacheTasks(updatedTasks);
   }
+
 
   /** Delete a task */
   async deleteTask(task: Task) {
@@ -112,5 +122,12 @@ export class TaskService {
     const remainingTasks = this._tasks.value.filter(t => t.id !== task.id);
     this._tasks.next(remainingTasks);
     this.cacheTasks(remainingTasks);
+  }
+    /** Public method to get all tasks for current user (async) */
+  async getTasks(): Promise<Task[]> {
+    const user = await this.getCurrentUser(); // uses existing private method
+    const tasksCol = collection(this.firestore, 'users', user.uid, 'tasks');
+    const snapshot = await getDocs(tasksCol);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as Task) }));
   }
 }

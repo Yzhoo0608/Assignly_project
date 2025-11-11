@@ -66,10 +66,18 @@ export class HomePage implements OnInit {
     toast.present();
   }
 
-  async toggleTaskStatus(task: Task) {
-    const newStatus = task.status === 'completed' ? 'not started' : 'completed';
-    await this.firestoreService.updateTask(task.id!, { status: newStatus });
-  }
+    async toggleTaskStatus(task: Task) {
+      // Normalize to lowercase to prevent mismatch
+      const status = task.status?.toLowerCase().trim() ?? 'not started';
+
+      if (status === 'not started') task.status = 'in progress';
+      else if (status === 'in progress') task.status = 'completed';
+      else task.status = 'not started';
+
+      // Pass task ID and task object
+      await this.firestoreService.updateTask(task.id!, { status: task.status });
+    }
+
 
   async deleteTask(task: Task) {
     const alert = await this.alertCtrl.create({

@@ -1,24 +1,25 @@
+<!-- // src/app/home/home.page.html -->
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button autoHide="false"></ion-menu-button>
+    </ion-buttons>
+
     <ion-title>Tasks</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="toggleAdd()">
+        <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <!-- Search -->
-  <ion-searchbar
-    placeholder="Search tasks"
-    [(ngModel)]="searchTerm"
-    (ionInput)="applyFilter()"
-  ></ion-searchbar>
 
-  <!-- Add Task Button -->
-  <ion-button expand="full" (click)="toggleAdd()">
-    {{ isAdding ? 'Cancel' : 'Add Task' }}
-  </ion-button>
+<ion-content class="ion-padding">
 
   <!-- Add Task Form -->
-  <div *ngIf="isAdding" class="ion-padding">
+  <div *ngIf="isAdding" class="add-task-form">
     <ion-item>
       <ion-label position="floating">Task Subject</ion-label>
       <ion-input [(ngModel)]="newTaskSubject"></ion-input>
@@ -26,7 +27,7 @@
 
     <ion-item>
       <ion-label position="floating">Deadline</ion-label>
-      <ion-datetime [(ngModel)]="newTaskDeadline"></ion-datetime>
+      <ion-datetime display-format="YYYY-MM-DD" [(ngModel)]="newTaskDeadline"></ion-datetime>
     </ion-item>
 
     <ion-item>
@@ -38,24 +39,27 @@
       </ion-select>
     </ion-item>
 
-    <ion-button expand="full" (click)="addTask()">Save Task</ion-button>
+    <ion-button expand="block" (click)="addTask()">Add Task</ion-button>
   </div>
+
+  <!-- Search -->
+  <ion-item>
+    <ion-input placeholder="Search tasks..." [(ngModel)]="searchTerm" (ionInput)="applyFilter()"></ion-input>
+  </ion-item>
 
   <!-- Task List -->
   <ion-list>
     <ion-item *ngFor="let task of tasks">
       <ion-label [class.completed]="task.status === 'completed'">
-        {{ task.subject }}
+        {{ task.subject }} <small>({{ task.status }})</small>
       </ion-label>
 
-      <ion-toggle
-        slot="end"
-        [checked]="task.status === 'completed'"
-        (ionChange)="toggleTaskStatus(task)"
-      ></ion-toggle>
+      <ion-button fill="clear" slot="end" (click)="toggleTaskStatus(task)">
+        <ion-icon [name]="task.status === 'completed' ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+      </ion-button>
 
-      <ion-button slot="end" color="danger" (click)="deleteTask(task)">
-        Delete
+      <ion-button fill="clear" color="danger" slot="end" (click)="deleteTask(task)">
+        <ion-icon name="trash-outline"></ion-icon>
       </ion-button>
     </ion-item>
   </ion-list>
