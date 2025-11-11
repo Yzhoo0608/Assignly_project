@@ -135,9 +135,7 @@ export class AuthService {
       const defaultProfile = {
         name: user.displayName || '',
         email: user.email || '',
-        institution: '',
         course: '',
-        semester: '',
         bio: '',
         avatar: 'https://cdn-icons-png.flaticon.com/512/1946/1946429.png',
       };
