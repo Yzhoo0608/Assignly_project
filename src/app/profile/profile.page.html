@@ -18,10 +18,14 @@
 
   <!-- Personal & Academic Info -->
   <ion-list>
-    <ion-item><ion-label position="floating">Full Name</ion-label><ion-input [(ngModel)]="user.name"></ion-input></ion-item>
-    <ion-item><ion-label position="floating">Email</ion-label><ion-input [value]="user.email" readonly></ion-input></ion-item>
-    <ion-item><ion-label position="floating">Bio</ion-label><ion-textarea [(ngModel)]="user.bio"></ion-textarea></ion-item>
-    <ion-item><ion-label position="floating">Course</ion-label><ion-input [(ngModel)]="user.course"></ion-input></ion-item>
+    <ion-item><ion-label position="floating">Full Name</ion-label><ion-input
+        [(ngModel)]="user.name"></ion-input></ion-item>
+    <ion-item><ion-label position="floating">Email</ion-label><ion-input [value]="user.email"
+        readonly></ion-input></ion-item>
+    <ion-item><ion-label position="floating">Bio</ion-label><ion-textarea
+        [(ngModel)]="user.bio"></ion-textarea></ion-item>
+    <ion-item><ion-label position="floating">Course</ion-label><ion-input
+        [(ngModel)]="user.course"></ion-input></ion-item>
   </ion-list>
 
   <!-- Progress -->
@@ -33,8 +37,12 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-button expand="block" color="primary" (click)="saveProfile()">Save Profile</ion-button>
-  <ion-button expand="block" color="danger" (click)="logout()">Logout</ion-button>
+  <ion-card *ngIf="user?.isPro" color="success">
+    <ion-card-content class="ion-text-center">
+      <ion-icon name="star" slot="start"></ion-icon>
+      You are a Pro User!
+    </ion-card-content>
+  </ion-card>
+    <ion-button expand="block" color="primary" (click)="saveProfile()">Save Profile</ion-button>
+    <ion-button expand="block" color="danger" (click)="logout()">Logout</ion-button>
 </ion-content>
-
-

@@ -37,6 +37,7 @@ export interface Task {
   deadline: string;
   createdAt?: Date;
   updatedAt?: Date;
+  priority?: 'low' | 'normal' | 'high';
 }
 
 export interface AppUser {
@@ -47,6 +48,7 @@ export interface AppUser {
   avatar?: string;
   completedTasks?: number;
   totalTasks?: number;
+  isPro?: boolean;
 
   // Add these fields
   course?: string;
@@ -65,33 +67,39 @@ export interface AppUser {
 // ---------------------------
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  // Firebase Auth & Firestore instances
   private auth: Auth = inject(Auth);
   private firestore: Firestore = inject(Firestore);
+
+  // BehaviorSubject to keep track of current user
   private userSubject = new BehaviorSubject<AppUser | null>(null);
   public user$: Observable<AppUser | null> = this.userSubject.asObservable();
 
   constructor() {
-    this.initAuthListener();
-  }
+    this.initAuthListener(); // Start listening to auth state changes
+  } 
 
   // ---------------------------
   // AUTH SECTION
   // ---------------------------
   private initAuthListener() {
+    // Fires whenever the user logs in/out
     onAuthStateChanged(this.auth, async (user) => {
       if (user) {
         const profile = await this.loadUserProfile(user.uid);
-        this.userSubject.next(profile);
+        this.userSubject.next(profile); // Update current user
       } else {
-        this.userSubject.next(null);
+        this.userSubject.next(null); // No user logged in
       }
     });
   }
 
+  // Register a new user
   async register(email: string, password: string, name: string): Promise<AppUser> {
     const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
     const user = userCredential.user;
 
+    // Default profile info
     const defaultProfile = {
       name,
       email: user.email,
@@ -100,6 +108,7 @@ export class AuthService {
       avatar: 'https://cdn-icons-png.flaticon.com/512/1946/1946429.png',
     };
 
+    // Default app settings
     const defaultSettings = {
       darkMode: false,
       offlineMode: false,
@@ -115,22 +124,26 @@ export class AuthService {
       settings: defaultSettings,
     };
 
+    // Save to Firestore
     await setDoc(doc(this.firestore, `users/${user.uid}`), {
       profile: defaultProfile,
       progress: { completedTasks: 0, totalTasks: 0 },
       settings: defaultSettings,
       createdAt: new Date(),
+      isPro: false
     });
 
     this.userSubject.next(appUser);
     return appUser;
   }
 
+  // Login existing user
   async login(email: string, password: string): Promise<AppUser> {
     const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
     const user = userCredential.user;
-    let appUser = await this.loadUserProfile(user.uid);
+    let appUser = await this.loadUserProfile(user.uid); // Load existing profile
 
+    // If no profile exists, create default one
     if (!appUser) {
       const defaultProfile = {
         name: user.displayName || '',
@@ -167,15 +180,18 @@ export class AuthService {
     return appUser;
   }
 
+  // Logout user
   async logout() {
     await signOut(this.auth);
     this.userSubject.next(null);
   }
 
+  // Get currently logged in Firebase user
   getCurrentUser(): User | null {
     return this.auth.currentUser;
   }
 
+  // Load user profile from Firestore
   private async loadUserProfile(uid: string): Promise<AppUser | null> {
     const docSnap = await getDoc(doc(this.firestore, `users/${uid}`));
     if (docSnap.exists()) {
@@ -187,11 +203,13 @@ export class AuthService {
         completedTasks: data.progress?.completedTasks || 0,
         totalTasks: data.progress?.totalTasks || 0,
         settings: data.settings,
+        isPro: data.isPro || false,
       };
     }
     return null;
   }
 
+  // Update user settings
   async updateSettings(uid: string, newSettings: Partial<AppUser['settings']>) {
     const userDoc = doc(this.firestore, `users/${uid}`);
     await updateDoc(userDoc, { settings: newSettings });
@@ -199,6 +217,7 @@ export class AuthService {
     this.userSubject.next(updated);
   }
 
+  // Update user profile info
   async updateProfile(user: AppUser) {
     const userDoc = doc(this.firestore, `users/${user.uid}`);
     await updateDoc(userDoc, {
@@ -207,7 +226,7 @@ export class AuthService {
         bio: user.bio,
         course: user.course,
         avatar: user.avatar,
-        email: user.email, 
+        email: user.email,
       },
     });
     const updated = await this.loadUserProfile(user.uid);
@@ -224,6 +243,7 @@ export class AuthService {
       subject: task.subject,
       status: task.status,
       deadline: task.deadline,
+      priority: task.priority || 'normal',
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -239,6 +259,7 @@ export class AuthService {
       subject: task.subject,
       status: task.status,
       deadline: task.deadline,
+      priority: task.priority || 'normal',
       updatedAt: new Date(),
     });
 
@@ -257,6 +278,7 @@ export class AuthService {
     return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as Task) }));
   }
 
+  // Update user's task progress counts
   private async updateProgress(uid: string) {
     const tasksCol = collection(this.firestore, 'users', uid, 'tasks');
     const totalCount = (await getCountFromServer(tasksCol)).data().count;
@@ -272,5 +294,14 @@ export class AuthService {
 
     const updated = await this.loadUserProfile(uid);
     this.userSubject.next(updated);
+  }
+  // Pro status upgrade
+  async setUserProStatus(uid: string) {
+    const userDoc = doc(this.firestore, `users/${uid}`);
+    await updateDoc(userDoc, { isPro: true });
+
+    // Refresh local user data 
+    const updatedProfile = await this.loadUserProfile(uid);
+    this.userSubject.next(updatedProfile);
   }
 }

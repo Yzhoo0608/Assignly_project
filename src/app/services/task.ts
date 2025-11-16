@@ -4,4 +4,5 @@ export interface Task {
   subject: string;   // main title
   deadline: string;
   status: 'not started' | 'in progress' | 'completed';
+  priority?: 'low' | 'normal' | 'high';
 }

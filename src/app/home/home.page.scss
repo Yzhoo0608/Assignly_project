@@ -1,4 +1,17 @@
-.completed {
-  text-decoration: line-through;
-  color: gray;
+/* High priority task - red left border */
+ion-item.priority-high::part(native) {
+  border-left: 5px solid var(--ion-color-danger); // Red
+  padding-left: 10px;
+}
+
+/* Normal priority task - yellow left border */
+ion-item.priority-normal::part(native) {
+  border-left: 5px solid var(--ion-color-warning); // Yellow
+  padding-left: 10px;
+}
+
+/* Low priority task - green left border */
+ion-item.priority-low::part(native) {
+  border-left: 5px solid var(--ion-color-success); // Green
+  padding-left: 10px;
 }

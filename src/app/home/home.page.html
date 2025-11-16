@@ -1,17 +1,27 @@
-<!-- // src/app/home/home.page.html -->
 <ion-header>
   <ion-toolbar color="primary">
+    <!-- Menu button on the left -->
     <ion-buttons slot="start">
       <ion-menu-button autoHide="false"></ion-menu-button>
     </ion-buttons>
 
+    <!-- Buttons on the right -->
     <ion-title>Tasks</ion-title>
 
     <ion-buttons slot="end">
+
+      <!-- Show ads & Go Pro only if user is not Pro -->
+      <ng-container *ngIf="!isPro">
+        <ion-button (click)="showAd()">Show Ad</ion-button>
+        <ion-button (click)="goPro()" color="success">Go Pro for priority features!!!</ion-button>
+      </ng-container>
+      
+      <!-- Toggle add task form -->
       <ion-button (click)="toggleAdd()">
         <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
+
   </ion-toolbar>
 </ion-header>
 
@@ -39,25 +49,41 @@
       </ion-select>
     </ion-item>
 
+    <!-- Priority field only for Pro users -->
+    <div *ngIf="isPro">
+      <ion-item>
+        <ion-label>Priority</ion-label>
+        <ion-select [(ngModel)]="newTaskPriority">
+          <ion-select-option value="low">Low</ion-select-option>
+          <ion-select-option value="normal">Normal</ion-select-option>
+          <ion-select-option value="high">High</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+
+    <!-- Add task button -->
     <ion-button expand="block" (click)="addTask()">Add Task</ion-button>
   </div>
 
-  <!-- Search -->
+  <!-- Search input -->
   <ion-item>
     <ion-input placeholder="Search tasks..." [(ngModel)]="searchTerm" (ionInput)="applyFilter()"></ion-input>
   </ion-item>
 
   <!-- Task List -->
   <ion-list>
-    <ion-item *ngFor="let task of tasks">
+    <ion-item *ngFor="let task of tasks" [class]="getPriorityClass(task)">
+
       <ion-label [class.completed]="task.status === 'completed'">
         {{ task.subject }} <small>({{ task.status }})</small>
       </ion-label>
 
+      <!-- Toggle task status button -->
       <ion-button fill="clear" slot="end" (click)="toggleTaskStatus(task)">
         <ion-icon [name]="task.status === 'completed' ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
       </ion-button>
 
+      <!-- Delete task button -->
       <ion-button fill="clear" color="danger" slot="end" (click)="deleteTask(task)">
         <ion-icon name="trash-outline"></ion-icon>
       </ion-button>
