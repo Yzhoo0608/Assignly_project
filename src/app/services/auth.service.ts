@@ -38,6 +38,7 @@ export interface Task {
   createdAt?: Date;
   updatedAt?: Date;
   priority?: 'low' | 'normal' | 'high';
+  isOverdue?: boolean;
 }
 
 export interface AppUser {

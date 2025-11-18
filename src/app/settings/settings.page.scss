@@ -1,9 +1,71 @@
 // src/app/settings/settings.page.scss
-ion-item {
-  --padding-start: 16px;
+ion-content {
+  --background: #f0ebea;
+  position: relative;
+  padding-bottom: 20px;
 }
 
-h2 {
-  font-weight: 600;
-  margin-bottom: 4px;
+/* Cards */
+.settings-card {
+  margin: 15px auto;
+  border-radius: 18px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
 }
+
+/* Section Titles */
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
+}
+
+/* Welcome Card */
+.welcome-card h2 {
+  margin-top: 20px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #222;
+}
+
+.welcome-card p {
+  margin-top: 4px;
+   margin-bottom: 15px;
+  color: #555;
+  font-size: 14px;
+}
+
+/* Input Fields / Items */
+.input-field {
+  --background: #ffffff;
+  --padding-start: 12px;
+  --padding-end: 8px;
+  font-size: 15px;
+  border-radius: 15px;
+  border: 1px solid #ddd;
+  margin-bottom: 12px;
+  --box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  transition: all 0.25s ease;
+}
+
+.input-field:focus-within {
+  border: 1px solid #b2493d;
+  --box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+}
+
+/* Label Styling */
+.input-field ion-label {
+  color: #706d6d;
+  font-weight: 600;
+}
+
+.input-field:focus-within ion-label {
+  color: #b2493d;
+}
+
+/* Buttons */
+.action-btn {
+  border-radius: 12px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+

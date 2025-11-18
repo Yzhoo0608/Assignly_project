@@ -1,16 +1,169 @@
 // src/app/profile/profile.page.scss
-.profile-card {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
+ion-content {
+  --background: #f0ebea;
+  position: relative;
 }
 
+/* Avatar Wrapper */
+.avatar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* Avatar */
 .avatar {
-  width: 120px;
-  height: 120px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
-  margin: 20px 0;
-  border: 3px solid var(--ion-color-primary);
+  border: 4px solid #ffffff;
   object-fit: cover;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* Change Avatar Button */
+.change-avatar-btn {
+  margin-top: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  transition: 0.25s ease;
+}
+
+/* Hover effect */
+.change-avatar-btn:hover {
+  background: #ddd7d5; 
+  color: #b2493d;
+  transform: translateY(-2px);
+}
+
+/* Profile Card */
+.profile-card {
+  width: 80%;
+  margin: 20px auto;
+  background: #ffffff;
+  border-radius: 18px;
+  padding-top: 30px;
+  padding-bottom: 15px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+/* Section Title */
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #444;
+}
+
+/* Input Fields */
+.input-field {
+  --background: #ffffff;
+  --padding-start: 12px;
+  --padding-end: 8px;
+  font-size: 15px;
+  border-radius: 15px;
+  border: 2px solid #c1c0c0;     
+  --border-color: #ddd;
+  --box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+  margin-bottom: 15px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+/* Label (default state) */
+.input-field ion-label {
+  color: #706d6d;  
+  font-weight: 800;
+  transition: color 0.25s ease;
+}
+
+.input-field:focus-within {
+  --background: #ffffff;
+  border: 2px solid #b2493d !important;
+  --border-color: #b2493d !important;    
+  --highlight-color-focused: #b2493d !important; 
+  --box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Label turns red when focused */
+.input-field:focus-within ion-label {
+  color: #b2493d;
+}
+
+/* Pro Badge */
+.pro-badge {
+  --padding-start: 0px;
+  --padding-end: 100px;
+  --border-radius: 12px;
+  display: flex;                /* Flex layout */
+  justify-content: center;      /* Center content horizontally */
+  align-items: center;          /* Center content vertically */
+  margin: 20px auto;            /* Center badge in parent container */
+  width: fit-content;
+  background: #ffe9e1;
+  color: #b2493d;
+  padding: 10px 50px;
+  border-radius: 20px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.pro-badge ion-icon {
+  font-size: 20px;
+  margin-right: 8px;            /* Space between icon and text */
+}
+
+/* Progress Section */
+.progress-section {
+  margin-top: 25px;
+  text-align: left;
+  padding: 0 12px;
+}
+
+.progress-section h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #444;
+}
+
+.progress-info {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.progress-bar {
+  height: 12px;
+  border-radius: 8px;
+}
+
+/* Save Profile Button */
+ion-button.save-btn {
+  margin: 40px auto 0 auto; 
+  height: 43px;
+  font-size: 13px;
+  border-radius: 12px;
+  --background: #b2493d;
+  color: #fff;
+  font-weight: 700; 
+  width: 500px;
+  display: block; 
+}
+
+ion-button.share-btn {
+  margin: 20px auto;
+  height: 43px;
+  font-size: 13px;
+  border-radius: 12px;
+  --background: #4a90e2;
+  color: #fff;
+  font-weight: 700;
+  width: 500px;
+  display: block;
 }

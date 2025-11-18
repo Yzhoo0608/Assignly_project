@@ -1,92 +1,193 @@
+<!-- Home Page Header --> 
 <ion-header>
   <ion-toolbar color="primary">
-    <!-- Menu button on the left -->
     <ion-buttons slot="start">
       <ion-menu-button autoHide="false"></ion-menu-button>
     </ion-buttons>
-
-    <!-- Buttons on the right -->
     <ion-title>Tasks</ion-title>
-
     <ion-buttons slot="end">
-
-      <!-- Show ads & Go Pro only if user is not Pro -->
       <ng-container *ngIf="!isPro">
         <ion-button (click)="showAd()">Show Ad</ion-button>
         <ion-button (click)="goPro()" color="success">Go Pro for priority features!!!</ion-button>
       </ng-container>
-      
-      <!-- Toggle add task form -->
-      <ion-button (click)="toggleAdd()">
-        <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
-      </ion-button>
     </ion-buttons>
-
   </ion-toolbar>
 </ion-header>
 
+<!-- Page Content -->
+<ion-content class="ion-padding task-content">
 
-<ion-content class="ion-padding">
+  <!-- Header Row (Section title + Search + Add) -->
+  <div class="header-row">
+    <h2 class="section-title">Tasks List</h2>
+    <div class="title-underline"></div>
 
-  <!-- Add Task Form -->
-  <div *ngIf="isAdding" class="add-task-form">
-    <ion-item>
-      <ion-label position="floating">Task Subject</ion-label>
-      <ion-input [(ngModel)]="newTaskSubject"></ion-input>
-    </ion-item>
-
-    <ion-item>
-      <ion-label position="floating">Deadline</ion-label>
-      <ion-datetime display-format="YYYY-MM-DD" [(ngModel)]="newTaskDeadline"></ion-datetime>
-    </ion-item>
-
-    <ion-item>
-      <ion-label>Status</ion-label>
-      <ion-select [(ngModel)]="newTaskStatus">
-        <ion-select-option value="not started">Not Started</ion-select-option>
-        <ion-select-option value="in progress">In Progress</ion-select-option>
-        <ion-select-option value="completed">Completed</ion-select-option>
-      </ion-select>
-    </ion-item>
-
-    <!-- Priority field only for Pro users -->
-    <div *ngIf="isPro">
-      <ion-item>
-        <ion-label>Priority</ion-label>
-        <ion-select [(ngModel)]="newTaskPriority">
-          <ion-select-option value="low">Low</ion-select-option>
-          <ion-select-option value="normal">Normal</ion-select-option>
-          <ion-select-option value="high">High</ion-select-option>
-        </ion-select>
-      </ion-item>
+    <!-- Search Bar -->
+    <div class="search-bar-container">
+      <ion-searchbar
+        class="modern-searchbar"
+        placeholder="Search your tasks..."
+        [(ngModel)]="searchTerm"
+        (ionInput)="applyFilter()">
+      </ion-searchbar>
     </div>
 
-    <!-- Add task button -->
-    <ion-button expand="block" (click)="addTask()">Add Task</ion-button>
+    <!-- Add Task Button -->
+    <ion-button class="toggle-btn" fill="outline" color="primary" (click)="toggleAdd()">
+      <ion-icon slot="start" [name]="isAdding ? 'close' : 'add-outline'"></ion-icon>
+      {{ isAdding ? '× Cancel' : '+ Add Task' }}
+    </ion-button>
   </div>
 
-  <!-- Search input -->
-  <ion-item>
-    <ion-input placeholder="Search tasks..." [(ngModel)]="searchTerm" (ionInput)="applyFilter()"></ion-input>
-  </ion-item>
+  <!-- Add/Edit Task Form -->
+  <div *ngIf="isAdding" #formContainer>
+    <ion-card class="add-card">
+      <ion-card-header>
+        <ion-card-title>
+          {{ editingTask ? 'Edit Task' : 'Add New Task' }}
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content [formGroup]="taskForm">
+
+        <!-- Subject -->
+        <ion-item>
+          <ion-label position="stacked">Subject</ion-label>
+          <ion-input formControlName="subject" placeholder="Enter task subject"></ion-input>
+          <ion-note color="danger" *ngIf="subjectError">{{ subjectError }}</ion-note>
+          <ion-note color="danger" *ngIf="duplicateError">{{ duplicateError }}</ion-note>
+        </ion-item>
+
+        <!-- Deadline -->
+        <ion-item>
+          <ion-label position="stacked">Deadline</ion-label>
+          <ion-datetime
+            formControlName="deadline"
+            [min]="minDate"
+            presentation="date-time"
+            hourCycle="h12"
+            displayFormat="MMM dd, yyyy h:mm a"
+            class="compact-datetime">
+          </ion-datetime>
+
+          <ion-note color="danger" *ngIf="deadlineError">{{ deadlineError }}</ion-note>
+        </ion-item>
+
+        <!-- Status -->
+        <ion-item>
+          <ion-label position="stacked">Status</ion-label>
+          <ion-select formControlName="status">
+            <ion-select-option value="not started">Not Started</ion-select-option>
+            <ion-select-option value="in progress">In Progress</ion-select-option>
+            <ion-select-option value="completed">Completed</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <!-- Priority (Pro only) -->
+        <ion-item *ngIf="isPro">
+          <ion-label position="stacked">Priority</ion-label>
+          <ion-select formControlName="priority">
+            <ion-select-option value="low">Low</ion-select-option>
+            <ion-select-option value="normal">Normal</ion-select-option>
+            <ion-select-option value="high">High</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <!-- Submit Button -->
+        <ion-button expand="block" class="add-btn" (click)="addTask()">
+          {{ editingTask ? 'Update Task' : 'Add Task' }}
+        </ion-button>
+
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Section Filter (All / Not Started / In Progress / Completed) -->
+  <div class="task-sections">
+    <ion-segment [(ngModel)]="taskSection" (ionChange)="filterBySection()">
+      <ion-segment-button value="all">All</ion-segment-button>
+      <ion-segment-button value="not started">Not Started</ion-segment-button>
+      <ion-segment-button value="in progress">In Progress</ion-segment-button>
+      <ion-segment-button value="completed">Completed</ion-segment-button>
+    </ion-segment>
+  </div>
 
   <!-- Task List -->
-  <ion-list>
-    <ion-item *ngFor="let task of tasks" [class]="getPriorityClass(task)">
+  <ion-list *ngIf="filteredTasks.length; else noTasks" class="task-list">
+    <div *ngFor="let task of filteredTasks" class="task-row">
 
-      <ion-label [class.completed]="task.status === 'completed'">
-        {{ task.subject }} <small>({{ task.status }})</small>
-      </ion-label>
+      <!-- Left: Date Card -->
+      <ion-card class="date-card">
+        <ion-card-content>
+          <h2>{{ task.deadline | date:'dd' }}</h2>
+          <p>{{ task.deadline | date:'MMM' }}</p>
+        </ion-card-content>
+      </ion-card>
 
-      <!-- Toggle task status button -->
-      <ion-button fill="clear" slot="end" (click)="toggleTaskStatus(task)">
-        <ion-icon [name]="task.status === 'completed' ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
-      </ion-button>
+      <!-- Right: Task Card -->
+      <ion-card
+        class="task-card"
+        [ngClass]="{
+          'completed-task': task.status === 'completed',
+          'overdue-task': task.isOverdue,
+          'priority-high': task.priority === 'high',
+          'priority-normal': task.priority === 'normal',
+          'priority-low': task.priority === 'low'
+        }">
+        <ion-card-content>
 
-      <!-- Delete task button -->
-      <ion-button fill="clear" color="danger" slot="end" (click)="deleteTask(task)">
-        <ion-icon name="trash-outline"></ion-icon>
-      </ion-button>
-    </ion-item>
+          <div class="task-header">
+            <div class="task-title">
+              <h3>{{ task.subject }}</h3>
+              <p class="task-deadline">
+                Due: {{ task.deadline | date:'MMM d, yyyy | h:mm a' }}
+              </p>
+            </div>
+
+            <span class="status-badge"
+              [ngClass]="{
+                'completed': task.status === 'completed',
+                'in-progress': task.status === 'in progress',
+                'not-started': task.status === 'not started',
+                'overdue': task.isOverdue
+              }">
+              {{ task.status | titlecase }}
+            </span>
+          </div>
+
+          <div class="task-footer">
+            <ion-select
+              [value]="task.status"
+              (ionChange)="toggleTaskStatus(task)"
+              interface="popover">
+              <ion-select-option value="not started">Not Started</ion-select-option>
+              <ion-select-option value="in progress">In Progress</ion-select-option>
+              <ion-select-option value="completed">Completed</ion-select-option>
+            </ion-select>
+
+            <div class="action-buttons">
+              <ion-button class="edit-btn" fill="solid" size="small" (click)="editTask(task)">
+                <ion-icon name="create-outline" slot="start"></ion-icon>
+                Edit
+              </ion-button>
+              <ion-button class="delete-btn" fill="solid" size="small" (click)="deleteTask(task)">
+                <ion-icon name="trash-outline" slot="start"></ion-icon>
+                Delete
+              </ion-button>
+            </div>
+          </div>
+
+        </ion-card-content>
+      </ion-card>
+
+    </div>
   </ion-list>
+
+  <!-- No Tasks Message -->
+  <ng-template #noTasks>
+    <p class="no-task-text">No tasks found. Click "+ Add Task" to create one.</p>
+  </ng-template>
+
 </ion-content>
+
+
+

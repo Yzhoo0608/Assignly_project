@@ -2,47 +2,92 @@
 
 <ion-header>
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button autoHide="false"></ion-menu-button>
+    </ion-buttons>
+
     <ion-title>Profile</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <!-- Avatar -->
+
+  <!-- Avatar Floating Above Card -->
+  <div class="avatar-wrapper">
+    <img [src]="user.avatar || 'https://cdn-icons-png.flaticon.com/512/1946/1946429.png'"
+        class="avatar" />
+
+    <!-- Single Change Avatar Button -->
+    <ion-button fill="clear" size="small" class="change-avatar-btn" (click)="openAvatarOptions()">
+      Change Avatar
+    </ion-button>
+
+    <input #fileInput type="file" hidden accept="image/*" (change)="changeAvatar($event)" />
+  </div>
+
+  <!-- Main Profile Card -->
   <ion-card class="profile-card">
-    <ion-card-content class="ion-text-center">
-      <img [src]="user.avatar || 'https://cdn-icons-png.flaticon.com/512/1946/1946429.png'" class="avatar" />
-      <ion-button fill="clear" (click)="fileInput.click()">Change Avatar</ion-button>
-      <input #fileInput type="file" hidden accept="image/*" (change)="changeAvatar($event)" />
-    </ion-card-content>
-  </ion-card>
 
-  <!-- Personal & Academic Info -->
-  <ion-list>
-    <ion-item><ion-label position="floating">Full Name</ion-label><ion-input
-        [(ngModel)]="user.name"></ion-input></ion-item>
-    <ion-item><ion-label position="floating">Email</ion-label><ion-input [value]="user.email"
-        readonly></ion-input></ion-item>
-    <ion-item><ion-label position="floating">Bio</ion-label><ion-textarea
-        [(ngModel)]="user.bio"></ion-textarea></ion-item>
-    <ion-item><ion-label position="floating">Course</ion-label><ion-input
-        [(ngModel)]="user.course"></ion-input></ion-item>
-  </ion-list>
+    <ion-card-header>
+      <ion-card-title class="section-title">Your Information</ion-card-title>
+    </ion-card-header>
 
-  <!-- Progress -->
-  <ion-card>
-    <ion-card-header><ion-card-title>Progress Overview</ion-card-title></ion-card-header>
     <ion-card-content>
-      <p>Completed Tasks: {{user.completedTasks}} / {{user.totalTasks}}</p>
-      <ion-progress-bar [value]="(user.completedTasks ?? 0) / (user.totalTasks ?? 1)"></ion-progress-bar>
-    </ion-card-content>
-  </ion-card>
 
-  <ion-card *ngIf="user?.isPro" color="success">
-    <ion-card-content class="ion-text-center">
-      <ion-icon name="star" slot="start"></ion-icon>
-      You are a Pro User!
+      <!-- Full Name -->
+      <ion-item lines="none" class="input-field">
+        <ion-label position="stacked">Full Name</ion-label>
+        <ion-input [(ngModel)]="user.name"></ion-input>
+      </ion-item>
+
+      <!-- Email -->
+      <ion-item lines="none" class="input-field">
+        <ion-label position="stacked">Email</ion-label>
+        <ion-input [value]="user.email" readonly></ion-input>
+      </ion-item>
+
+      <!-- Bio -->
+      <ion-item lines="none" class="input-field">
+        <ion-label position="stacked">Bio</ion-label>
+        <ion-textarea [(ngModel)]="user.bio"></ion-textarea>
+      </ion-item>
+
+      <!-- Course (you can remove later) -->
+      <ion-item lines="none" class="input-field">
+        <ion-label position="stacked">Course</ion-label>
+        <ion-input [(ngModel)]="user.course"></ion-input>
+      </ion-item>
+
+      <!-- Pro Badge -->
+      <div class="pro-badge" *ngIf="user?.isPro">
+        <ion-icon name="star"></ion-icon>
+        <span>Pro User</span>
+      </div>
+
+      <!-- Progress Section -->
+      <div class="progress-section">
+        <h3>Your Progress Overview</h3>
+
+        <p class="progress-info">
+          {{user.completedTasks}} / {{user.totalTasks}} tasks completed
+        </p>
+
+        <ion-progress-bar
+          class="progress-bar"
+          [value]="(user.completedTasks ?? 0) / (user.totalTasks ?? 1)">
+        </ion-progress-bar>
+      </div>
+
+      <!-- Save Profile Button -->
+      <ion-button expand="block" class="save-btn" (click)="saveProfile()">
+        Save Profile
+      </ion-button>
+
+      <!-- Share Profile Button -->
+      <ion-button expand="block" color="secondary" class="share-btn" (click)="shareProfile()">
+        Share Profile
+      </ion-button>
+
     </ion-card-content>
   </ion-card>
-    <ion-button expand="block" color="primary" (click)="saveProfile()">Save Profile</ion-button>
-    <ion-button expand="block" color="danger" (click)="logout()">Logout</ion-button>
 </ion-content>

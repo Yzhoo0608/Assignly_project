@@ -1,61 +1,80 @@
-<!-- src/app/settings/settings.page.html -->
 <ion-header>
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button autoHide="false"></ion-menu-button>
+    </ion-buttons>
     <ion-title>Settings</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-list>
-    <ion-item>
-      <ion-label>
-        <h2>Welcome, {{ userName }}</h2>
-        <p>Manage your preferences below</p>
-      </ion-label>
-    </ion-item>
 
-    <!-- Theme -->
-    <ion-item>
-      <ion-label>Dark Mode</ion-label>
-      <ion-toggle slot="end" [(ngModel)]="darkMode" (ionChange)="toggleDarkMode()"></ion-toggle>
-    </ion-item>
+  <!-- Welcome Card -->
+  <ion-card class="settings-card welcome-card">
+    <ion-card-content>
+      <h2>Welcome, {{ userName }}</h2>
+      <p>Manage your preferences below</p>
+    </ion-card-content>
+  </ion-card>
 
-    <!-- Offline Mode -->
-    <ion-item>
-      <ion-label>Offline Mode</ion-label>
-      <ion-toggle slot="end" [(ngModel)]="offlineMode" (ionChange)="toggleOfflineMode()"></ion-toggle>
-    </ion-item>
+  <!-- Preferences Card -->
+  <ion-card class="settings-card">
+    <ion-card-header>
+      <ion-card-title class="section-title">Preferences</ion-card-title>
+    </ion-card-header>
 
-    <!-- Notifications -->
-    <ion-item>
-      <ion-label>Task Reminders</ion-label>
-      <ion-toggle slot="end" [(ngModel)]="notifications.taskReminders" (ionChange)="updateNotifications()"></ion-toggle>
-    </ion-item>
-    <ion-item>
-      <ion-label>Daily Summary</ion-label>
-      <ion-toggle slot="end" [(ngModel)]="notifications.dailySummary" (ionChange)="updateNotifications()"></ion-toggle>
-    </ion-item>
+    <ion-card-content>
 
-    <!-- Task Preferences -->
-    <ion-item>
-      <ion-label>Sort Tasks By</ion-label>
-      <ion-select [(ngModel)]="taskPreferences.sortBy" (ionChange)="updateTaskPreferences()">
-        <ion-select-option value="deadline">Deadline</ion-select-option>
-        <ion-select-option value="subject">Subject</ion-select-option>
-        <ion-select-option value="completion">Completion</ion-select-option>
-      </ion-select>
-    </ion-item>
+      <!-- Dark Mode -->
+      <ion-item lines="none" class="input-field">
+        <ion-label>Dark Mode</ion-label>
+        <ion-toggle slot="end" [(ngModel)]="darkMode" (ionChange)="toggleDarkMode()"></ion-toggle>
+      </ion-item>
 
-    <!-- Profile & Logout -->
-    <ion-item button (click)="openProfile()">
-      <ion-icon name="person-circle-outline" slot="start"></ion-icon>
-      <ion-label>View / Edit Profile</ion-label>
-    </ion-item>
+      <!-- Offline Mode -->
+      <ion-item lines="none" class="input-field">
+        <ion-label>Offline Mode</ion-label>
+        <ion-toggle slot="end" [(ngModel)]="offlineMode" (ionChange)="toggleOfflineMode()"></ion-toggle>
+      </ion-item>
 
-    <ion-item>
-      <ion-button color="danger" expand="block" (click)="logout()">Logout</ion-button>
-    </ion-item>
-  </ion-list>
+      <!-- Notifications -->
+      <ion-item lines="none" class="input-field">
+        <ion-label>Task Reminders</ion-label>
+        <ion-toggle slot="end" [(ngModel)]="notifications.taskReminders" (ionChange)="updateNotifications()"></ion-toggle>
+      </ion-item>
+
+      <ion-item lines="none" class="input-field">
+        <ion-label>Daily Summary</ion-label>
+        <ion-toggle slot="end" [(ngModel)]="notifications.dailySummary" (ionChange)="updateNotifications()"></ion-toggle>
+      </ion-item>
+
+      <!-- Task Preferences -->
+      <ion-item lines="none" class="input-field">
+        <ion-label>Sort Tasks By</ion-label>
+        <ion-select [(ngModel)]="taskPreferences.sortBy" (ionChange)="updateTaskPreferences()">
+          <ion-select-option value="deadline">Deadline</ion-select-option>
+          <ion-select-option value="subject">Subject</ion-select-option>
+          <ion-select-option value="completion">Completion</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Profile & Logout Card -->
+  <ion-card class="settings-card">
+    <ion-card-content>
+      <ion-item lines="none" button (click)="openProfile()">
+        <ion-icon name="person-circle-outline" slot="start"></ion-icon>
+        <ion-label>View / Edit Profile</ion-label>
+      </ion-item>
+
+      <ion-button expand="block" color="danger" class="action-btn" (click)="logout()">
+        Logout
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
 </ion-content>
 
 
