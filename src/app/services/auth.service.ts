@@ -28,7 +28,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 // TYPES
 // ---------------------------
 export type SortOption = 'deadline' | 'subject' | 'completion';
-export type TaskStatus = 'not started' | 'in progress' | 'completed';
+export type TaskStatus = 'not started' | 'in progress' | 'completed' | 'pastDue';
 
 export interface Task {
   id?: string;
@@ -51,17 +51,25 @@ export interface AppUser {
   totalTasks?: number;
   isPro?: boolean;
 
-  // Add these fields
   course?: string;
 
   settings?: {
-    darkMode?: boolean;
     offlineMode?: boolean;
-    notifications?: { taskReminders?: boolean };
+    notifications?: { 
+      taskReminders?: boolean; 
+      dailySummary?: boolean; 
+    };
     taskPreferences?: { sortBy?: SortOption };
+    autoSort?: boolean;
+    taskReminders?: boolean;
+    notificationTime?: '1h' | '3h' | '1d' | '3d' | '1w';
+    showNotStarted?: boolean;
+    showInProgress?: boolean;
+    showCompleted?: boolean;
+    showPastDue?: boolean;
+    taskVisibility?: string[]; 
   };
 }
-
 
 // ---------------------------
 // SERVICE
@@ -115,6 +123,9 @@ export class AuthService {
       offlineMode: false,
       notifications: { taskReminders: true },
       taskPreferences: { sortBy: 'deadline' as SortOption },
+      autoSort: false,              
+      showCompleted: true,          
+      notificationTime: '1h' as '1h' | '3h' | '1d', 
     };
 
     const appUser: AppUser = {
@@ -155,10 +166,16 @@ export class AuthService {
       };
 
       const defaultSettings = {
-        darkMode: false,
         offlineMode: false,
         notifications: { taskReminders: true },
         taskPreferences: { sortBy: 'deadline' as SortOption },
+        autoSort: false,                     
+        notificationTime: '1h' as '1h' | '3h' | '1d', 
+        showNotStarted: true,
+        showInProgress: true,
+        showCompleted: true,
+        showPastDue: true,
+        taskVisibility: ['notStarted', 'inProgress', 'completed', 'pastDue']  
       };
 
       await setDoc(doc(this.firestore, `users/${user.uid}`), {
@@ -233,6 +250,17 @@ export class AuthService {
     const updated = await this.loadUserProfile(user.uid);
     this.userSubject.next(updated);
   }
+
+  // Delete all tasks that have status 'completed' for the given user
+  async deleteCompletedTasks(uid: string) {
+    const tasks = await this.getTasks(uid);
+    const completedTasks = tasks.filter(t => t.status === 'completed');
+
+    for (const task of completedTasks) {
+      if (task.id) await this.deleteTask(uid, task.id);
+    }
+  }
+
 
   // ---------------------------
   // TASK SECTION (per-user)

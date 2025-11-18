@@ -88,32 +88,37 @@ export class TaskService {
     });
 
     const newTask: Task = { ...task, id: docRef.id };
+    this._tasks.next([...this._tasks.value, newTask]);
+    this.cacheTasks(this._tasks.value);
     return newTask;
   }
 
   /** Update an existing task */
   async updateTask(task: Task) {
     if (!task.id) throw new Error('Task ID required');
-    const user = await this.getCurrentUser();
-    const taskDoc = doc(this.firestore, 'users', user.uid, 'tasks', task.id);
 
-    // Update Firestore
-    await updateDoc(taskDoc, {
-      subject: task.subject,
-      status: task.status,
-      deadline: task.deadline,
-      priority: task.priority || 'normal',
-      updatedAt: new Date(),
-    });
-
-    // Update local cache
+    // Update local immediately
     const updatedTasks = this._tasks.value.map(t =>
-      t.id === task.id ? { ...t, status: task.status, subject: task.subject, deadline: task.deadline } : t
+      t.id === task.id ? { ...t, ...task } : t
     );
     this._tasks.next(updatedTasks);
     this.cacheTasks(updatedTasks);
-  }
 
+    // Update Firestore in background
+    try {
+      const user = await this.getCurrentUser();
+      const taskDoc = doc(this.firestore, 'users', user.uid, 'tasks', task.id);
+      await updateDoc(taskDoc, {
+        subject: task.subject,
+        status: task.status,
+        deadline: task.deadline,
+        priority: task.priority || 'normal',
+        updatedAt: new Date(),
+      });
+    } catch (err) {
+      console.warn('Offline update (will sync later):', err);
+    }
+  }
 
   /** Delete a task */
   async deleteTask(task: Task) {
@@ -149,5 +154,16 @@ export class TaskService {
     const current = this._tasks.value;
     this._tasks.next([...current, tempTask]);
     return tempTask; // return for reference if needed
+  }
+  
+  /** Delete all completed tasks for the current user */
+  async deleteCompletedTasks(uid?: string) {
+    const user = uid ? await firstValueFrom(this.authService.user$) : await this.getCurrentUser();
+    const tasks = await this.getTasks();
+    const completedTasks = tasks.filter(t => t.status === 'completed');
+
+    for (const task of completedTasks) {
+      await this.deleteTask(task);
+    }
   }
 }

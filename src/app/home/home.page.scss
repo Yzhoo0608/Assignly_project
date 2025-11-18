@@ -176,13 +176,18 @@
 
   /* Add Button */
   .add-btn {
-    margin-top: 10px;
+    width: 100%; 
+    height: 10px;
+    margin: 10px auto; 
     --background: #b2493d;
     --color: #fff;
-    font-weight: 600;
+    --padding-top: 6px;
+    --padding-bottom: 6px;
     border-radius: 10px;
+    font-weight: 600;
     letter-spacing: 0.3px;
-    transition: filter 0.2s ease;
+    transition: filter 00.2s ease;
+    align-items: center;
 
     &:hover {
       filter: brightness(0.95);
@@ -190,13 +195,13 @@
   }
 }
 
-/* Compact, normal-size datetime */
+/* datetime calendar */
 .compact-datetime {
-  width: 20%;
-  max-width: 300px;       /* normal width */
-  height: 400px;          /* normal height */
-  margin-top: 20px;
-  margin-bottom: 20px;
+  width: 90%;          
+  max-width: 300px;     
+  min-width: 200px;      
+  aspect-ratio: 3 / 4;   
+  margin: 20px 0 20px 0; 
   border: 1px solid #ddd;
   border-radius: 12px;
   background: #fff;

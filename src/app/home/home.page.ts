@@ -4,10 +4,10 @@ import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Task } from '../services/auth.service';
+import { Task, AuthService } from '../services/auth.service';
 import { TaskService } from '../services/task.service';
 import { AdService } from '../services/ad';
-import { Subscription, Observable } from 'rxjs';
+import { Subscription, Observable, firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -17,31 +17,31 @@ import { Subscription, Observable } from 'rxjs';
   imports: [IonicModule, CommonModule, FormsModule, ReactiveFormsModule],
 })
 export class HomePage implements OnInit, OnDestroy {
-  // Observables & lists
   tasks$!: Observable<Task[]>;
   private tasksSub?: Subscription;
-  allTasks: Task[] = [];        // full list from service
-  filteredTasks: Task[] = [];   // shown list (search / filter)
+  private userSub?: Subscription;
+  allTasks: Task[] = [];
+  filteredTasks: Task[] = [];
 
-  // Reactive form for add/edit
   taskForm!: FormGroup;
   isAdding = false;
   editingTask: Task | null = null;
   @ViewChild('formContainer') formContainer!: ElementRef;
 
-  // UI / validation
   searchTerm = '';
   minDate: string;
   subjectError = '';
   deadlineError = '';
   duplicateError = '';
 
-  // Pro & ads
-  public isPro = false;
+  isPro = false;
   private proStatusSub?: Subscription;
 
-  // Section filter
-  taskSection: 'all' | 'not started' | 'in progress' | 'completed' = 'all';
+  taskSection: 'all' | 'completed' | 'pastDue' = 'all';
+  autoSort = false;
+  taskVisibility = { showNotStarted: true, showInProgress: true, showCompleted: true, showPastDue: true };
+  selectedTaskVisibility: string[] = ['notStarted', 'inProgress', 'completed', 'pastDue'];
+
 
   constructor(
     private taskService: TaskService,
@@ -49,14 +49,13 @@ export class HomePage implements OnInit, OnDestroy {
     private router: Router,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
-    private adService: AdService
+    private adService: AdService,
+    private authService: AuthService
   ) {
-    const now = new Date();
-    this.minDate = now.toISOString().slice(0, 16);
+    this.minDate = new Date().toISOString().slice(0, 16);
   }
 
   ngOnInit() {
-    // Build reactive form
     this.taskForm = this.fb.group({
       subject: ['', Validators.required],
       deadline: ['', Validators.required],
@@ -64,65 +63,97 @@ export class HomePage implements OnInit, OnDestroy {
       priority: ['normal'],
     });
 
-    // Subscribe to tasks Observable from TaskService
     this.tasks$ = this.taskService.tasks$;
     this.tasksSub = this.tasks$.subscribe(tasks => {
-      // Update local list and refresh filtered view
       this.allTasks = tasks || [];
-      this.applyFilter(); // keeps filteredTasks in sync
+      this.updatePastDueTasks(); // mark past due
+      this.applyFilter();
     });
 
-    // Pro status subscription
-    this.proStatusSub = this.adService.proStatus$.subscribe(status => {
-      this.isPro = !!status;
+    this.userSub = this.authService.user$.subscribe(user => {
+      if (user?.settings) {
+        this.autoSort = user.settings.autoSort ?? false;
+
+        // Map the array from settings to the object used in HomePage
+        const visibilityArray: string[] = user.settings.taskVisibility ?? ['notStarted','inProgress','completed','pastDue'];
+        this.taskVisibility = {
+          showNotStarted: visibilityArray.includes('notStarted'),
+          showInProgress: visibilityArray.includes('inProgress'),
+          showCompleted: visibilityArray.includes('completed'),
+          showPastDue: visibilityArray.includes('pastDue'),
+        };
+
+        // Update local selectedTaskVisibility so it stays in sync
+        this.selectedTaskVisibility = visibilityArray;
+      }
+      this.applyFilter();
     });
+
+    this.proStatusSub = this.adService.proStatus$.subscribe(status => this.isPro = !!status);
   }
 
   ngOnDestroy() {
     this.tasksSub?.unsubscribe();
+    this.userSub?.unsubscribe();
     this.proStatusSub?.unsubscribe();
   }
 
-  // --- Filtering / Sorting ---
+  /** --- MARK TASKS AS PAST DUE --- */
+  async updatePastDueTasks() {
+    const now = Date.now();
+    let hasChanges = false;
+
+    for (const task of this.allTasks) {
+      const deadlineTime = new Date(task.deadline).getTime();
+      if (deadlineTime < now && task.status !== 'completed' && task.status !== 'pastDue') {
+        task.status = 'pastDue';
+        hasChanges = true;
+        if (task.id) await this.taskService.updateTask(task); // update Firestore
+      }
+    }
+
+    if (hasChanges) {
+      // Force Angular to detect changes
+      this.allTasks = [...this.allTasks];
+      this.applyFilter();
+    }
+  }
+
+  /** --- FILTER & SORT TASKS --- */
   applyFilter() {
-    this.filterAndSortTasks();
+    let filtered = [...this.allTasks];
+
+    // Section filter
+    filtered = filtered.filter(task => {
+      if (this.taskSection === 'completed') return task.status === 'completed';
+      if (this.taskSection === 'pastDue') return task.status === 'pastDue';
+      // show based on visibility
+      if (task.status === 'not started') return this.taskVisibility.showNotStarted;
+      if (task.status === 'in progress') return this.taskVisibility.showInProgress;
+      if (task.status === 'completed') return this.taskVisibility.showCompleted;
+      if (task.status === 'pastDue') return this.taskVisibility.showPastDue;
+      return true;
+    });
+
+    // Search filter
+    const term = this.searchTerm?.trim().toLowerCase();
+    if (term) {
+      filtered = filtered.filter(t => (t.subject || '').toLowerCase().includes(term));
+    }
+
+    // Auto sort
+    if (this.autoSort) {
+      filtered.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+    }
+
+    this.filteredTasks = filtered;
   }
 
   filterBySection() {
-    this.filterAndSortTasks();
+    this.applyFilter();
   }
 
-  filterAndSortTasks() {
-    const now = Date.now();
-    let tasks = [...this.allTasks];
-
-    // Section filter
-    if (this.taskSection !== 'all') {
-      tasks = tasks.filter(t => (t.status || 'not started') === this.taskSection);
-    }
-
-    // Search filter
-    const term = this.searchTerm?.trim().toLowerCase() || '';
-    if (term) {
-      tasks = tasks.filter(task =>
-        (task.subject || '').toLowerCase().includes(term) ||
-        (task.status || '').toLowerCase().includes(term)
-      );
-    }
-
-    // Mark overdue tasks
-    tasks.forEach(task => {
-      const deadlineTime = new Date(task.deadline).getTime();
-      task.isOverdue = deadlineTime < now && task.status !== 'completed';
-    });
-
-    // Sort by deadline ascending
-    tasks.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
-
-    this.filteredTasks = tasks;
-  }
-
-  // Toggle the add/edit form
+  // --- Add/Edit Task ---
   toggleAdd() {
     this.isAdding = !this.isAdding;
     this.editingTask = null;
@@ -138,18 +169,14 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  // Add or update task (uses reactive form)
   async addTask() {
-    // clear previous errors
     this.subjectError = '';
     this.deadlineError = '';
     this.duplicateError = '';
 
-    // mark touched to show validation states
     this.taskForm.markAllAsTouched();
     const formValue = this.taskForm.value;
 
-    // Basic validation
     if (!formValue.subject?.trim()) {
       this.subjectError = '* Required';
       return;
@@ -159,16 +186,13 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
-    // Block past time
     const selected = new Date(formValue.deadline);
     const now = new Date();
-
     if (selected.getTime() < now.getTime()) {
       this.deadlineError = '* Cannot select past time';
       return;
     }
 
-    // Duplicate check (case-insensitive), ignore the editingTask itself
     const duplicate = this.allTasks.some(
       t => t.subject?.toLowerCase() === formValue.subject.trim().toLowerCase()
            && t !== this.editingTask
@@ -178,56 +202,26 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
-    // Build final task object
-    const task: Task = {
-      ...formValue,
-      subject: formValue.subject.trim(),
-    };
-
+    const task: Task = { ...formValue, subject: formValue.subject.trim() };
     const editing = this.editingTask;
 
-    // Reset UI/form immediately (optimistic)
     this.isAdding = false;
     this.editingTask = null;
     this.taskForm.reset({ status: 'not started', priority: 'normal' });
 
     try {
       if (editing) {
-        // update existing
         await this.taskService.updateTask({ ...editing, ...task });
       } else {
-      
-        const hasLocalAdd = typeof this.taskService.addTaskLocally === 'function';
-        if (hasLocalAdd) {
-          
-          const temp = this.taskService.addTaskLocally(task);
-          try {
-            const added = await this.taskService.addTask(task);
-            
-            if (this.taskService['_tasks'] && temp?.id) {
-              
-              const current = this.taskService['_tasks'].value || [];
-              
-              this.taskService['_tasks'].next(current.map(t => (t.id === temp.id ? added : t)));
-            }
-          } catch (err) {
-           
-            console.warn('Add task failed (will sync later):', err);
-          }
-        } else {
-          // fallback: call addTask directly
-          await this.taskService.addTask(task);
-        }
+        await this.taskService.addTask(task);
       }
     } catch (err) {
       console.warn('Offline action (will sync later):', err);
     }
 
-    // ensure filtered list updated
+    this.updatePastDueTasks(); // ensure new tasks are checked
     this.applyFilter();
-    
 
-    // show toast
     const toast = await this.toastCtrl.create({
       message: 'Task saved successfully!',
       duration: 1200,
@@ -236,7 +230,6 @@ export class HomePage implements OnInit, OnDestroy {
     toast.present();
   }
 
-  // Prepare editing
   editTask(task: Task) {
     this.isAdding = true;
     this.editingTask = task;
@@ -252,7 +245,6 @@ export class HomePage implements OnInit, OnDestroy {
     }, 200);
   }
 
-  // Delete with confirmation
   async deleteTask(task: Task) {
     const alert = await this.alertCtrl.create({
       header: 'Confirm Delete',
@@ -280,39 +272,85 @@ export class HomePage implements OnInit, OnDestroy {
     await alert.present();
   }
 
-  // Toggle status quickly (in UI + persist)
   async toggleTaskStatus(task: Task) {
-    const status = (task.status || 'not started').toLowerCase().trim();
-    task.status = status === 'not started' ? 'in progress' :
-                  status === 'in progress' ? 'completed' : 'not started';
+    const status = task.status;
+    if (status !== 'pastDue') { // don't change pastDue automatically
+      task.status = status === 'not started' ? 'in progress' :
+                    status === 'in progress' ? 'completed' : 'not started';
+      try {
+        await this.taskService.updateTask(task);
+      } catch (err) {
+        console.warn('Offline status update (will sync later):', err);
+      }
+    }
+    this.updatePastDueTasks();
+    this.applyFilter();
+  }
+
+  async changeTaskStatus(task: Task, newStatus: string) {
+    if (task.status === 'pastDue' && newStatus !== 'completed') return; // block invalid changes
+
+    task.status = newStatus as Task['status'];
+
     try {
       await this.taskService.updateTask(task);
     } catch (err) {
       console.warn('Offline status update (will sync later):', err);
     }
 
-    // refresh filter so status update reflects immediately
+    this.updatePastDueTasks();
     this.applyFilter();
   }
 
-  // Return CSS class for priority (if template uses it)
-  getPriorityClass(task: Task): string {
-    const priority = task.priority || 'normal';
-    return `priority-${priority}`;
+  // ---------------------------------------------------
+  // Update Task Visibility Settings
+  // ---------------------------------------------------
+  async updateTaskVisibility() {
+    // Default to all if none selected
+    if (!this.selectedTaskVisibility || this.selectedTaskVisibility.length === 0) {
+      this.selectedTaskVisibility = ['notStarted', 'inProgress', 'completed', 'pastDue'];
+    }
+
+    console.log("Task visibility updated:", this.selectedTaskVisibility);
+
+    const user = await firstValueFrom(this.authService.user$);
+    if (!user) return;
+
+    const currentSettings = user.settings ?? {};
+
+    // Save new visibility to user settings
+    await this.authService.updateSettings(user.uid, {
+      ...currentSettings,
+      taskVisibility: this.selectedTaskVisibility
+    });
+
+    // Update local taskVisibility mapping for filtering
+    this.taskVisibility = {
+      showNotStarted: this.selectedTaskVisibility.includes('notStarted'),
+      showInProgress: this.selectedTaskVisibility.includes('inProgress'),
+      showCompleted: this.selectedTaskVisibility.includes('completed'),
+      showPastDue: this.selectedTaskVisibility.includes('pastDue'),
+    };
+
+    // Re-apply filter so the UI updates immediately
+    this.applyFilter();
   }
 
-  // Ads / Pro
-  showAd() {
-    this.adService.showInterstitial();
+  getPriorityClass(task: Task): string {
+    return `priority-${task.priority || 'normal'}`;
   }
+
+  showAd() { this.adService.showInterstitial(); }
 
   async goPro() {
     await this.adService.purchasePro();
     const alert = await this.alertCtrl.create({
-      header: 'Upgrade Complete!',
-      message: 'You are now a Pro user and have unlocked Task Priorities!',
+      header: 'Upgrade Complete',
+      message: 'You are now a Pro user and have unlocked Task Priorities',
       buttons: ['OK']
     });
     await alert.present();
   }
 }
+
+

@@ -52,14 +52,15 @@
         <!-- Subject -->
         <ion-item>
           <ion-label position="stacked">Subject</ion-label>
-          <ion-input formControlName="subject" placeholder="Enter task subject"></ion-input>
           <ion-note color="danger" *ngIf="subjectError">{{ subjectError }}</ion-note>
           <ion-note color="danger" *ngIf="duplicateError">{{ duplicateError }}</ion-note>
+          <ion-input formControlName="subject" placeholder="Enter task subject"></ion-input>
         </ion-item>
 
         <!-- Deadline -->
         <ion-item>
           <ion-label position="stacked">Deadline</ion-label>
+          <ion-note color="danger" *ngIf="deadlineError">{{ deadlineError }}</ion-note>
           <ion-datetime
             formControlName="deadline"
             [min]="minDate"
@@ -68,8 +69,6 @@
             displayFormat="MMM dd, yyyy h:mm a"
             class="compact-datetime">
           </ion-datetime>
-
-          <ion-note color="danger" *ngIf="deadlineError">{{ deadlineError }}</ion-note>
         </ion-item>
 
         <!-- Status -->
@@ -93,7 +92,7 @@
         </ion-item>
 
         <!-- Submit Button -->
-        <ion-button expand="block" class="add-btn" (click)="addTask()">
+        <ion-button class="add-btn" (click)="addTask()">
           {{ editingTask ? 'Update Task' : 'Add Task' }}
         </ion-button>
 
@@ -101,15 +100,15 @@
     </ion-card>
   </div>
 
-  <!-- Section Filter (All / Not Started / In Progress / Completed) -->
+  <!-- Section Filter (All / Completed / Past Due) -->
   <div class="task-sections">
     <ion-segment [(ngModel)]="taskSection" (ionChange)="filterBySection()">
       <ion-segment-button value="all">All</ion-segment-button>
-      <ion-segment-button value="not started">Not Started</ion-segment-button>
-      <ion-segment-button value="in progress">In Progress</ion-segment-button>
       <ion-segment-button value="completed">Completed</ion-segment-button>
+      <ion-segment-button value="pastDue">Past Due</ion-segment-button>
     </ion-segment>
   </div>
+
 
   <!-- Task List -->
   <ion-list *ngIf="filteredTasks.length; else noTasks" class="task-list">
@@ -128,7 +127,7 @@
         class="task-card"
         [ngClass]="{
           'completed-task': task.status === 'completed',
-          'overdue-task': task.isOverdue,
+          'overdue-task': task.status === 'pastDue',
           'priority-high': task.priority === 'high',
           'priority-normal': task.priority === 'normal',
           'priority-low': task.priority === 'low'
@@ -148,7 +147,7 @@
                 'completed': task.status === 'completed',
                 'in-progress': task.status === 'in progress',
                 'not-started': task.status === 'not started',
-                'overdue': task.isOverdue
+                'overdue': task.status === 'pastDue'
               }">
               {{ task.status | titlecase }}
             </span>
@@ -157,10 +156,21 @@
           <div class="task-footer">
             <ion-select
               [value]="task.status"
-              (ionChange)="toggleTaskStatus(task)"
+              (ionChange)="changeTaskStatus(task, $event.detail.value)"
               interface="popover">
-              <ion-select-option value="not started">Not Started</ion-select-option>
-              <ion-select-option value="in progress">In Progress</ion-select-option>
+              
+              <ion-select-option 
+                value="not started" 
+                [disabled]="task.status === 'pastDue'">
+                Not Started
+              </ion-select-option>
+              
+              <ion-select-option 
+                value="in progress" 
+                [disabled]="task.status === 'pastDue'">
+                In Progress
+              </ion-select-option>
+              
               <ion-select-option value="completed">Completed</ion-select-option>
             </ion-select>
 

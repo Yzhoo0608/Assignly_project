@@ -17,64 +17,94 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- Preferences Card -->
+  <!-- Toggle Preferences Card -->
   <ion-card class="settings-card">
     <ion-card-header>
       <ion-card-title class="section-title">Preferences</ion-card-title>
     </ion-card-header>
-
     <ion-card-content>
 
-      <!-- Dark Mode -->
-      <ion-item lines="none" class="input-field">
-        <ion-label>Dark Mode</ion-label>
-        <ion-toggle slot="end" [(ngModel)]="darkMode" (ionChange)="toggleDarkMode()"></ion-toggle>
-      </ion-item>
-
-      <!-- Offline Mode -->
-      <ion-item lines="none" class="input-field">
-        <ion-label>Offline Mode</ion-label>
-        <ion-toggle slot="end" [(ngModel)]="offlineMode" (ionChange)="toggleOfflineMode()"></ion-toggle>
-      </ion-item>
-
-      <!-- Notifications -->
+      <!-- Task Reminders -->
       <ion-item lines="none" class="input-field">
         <ion-label>Task Reminders</ion-label>
-        <ion-toggle slot="end" [(ngModel)]="notifications.taskReminders" (ionChange)="updateNotifications()"></ion-toggle>
+        <ion-toggle 
+          slot="end" 
+          [(ngModel)]="taskReminders" 
+          (ionChange)="updateTaskReminders()">
+        </ion-toggle>
       </ion-item>
 
+      <!-- Auto Sort -->
       <ion-item lines="none" class="input-field">
-        <ion-label>Daily Summary</ion-label>
-        <ion-toggle slot="end" [(ngModel)]="notifications.dailySummary" (ionChange)="updateNotifications()"></ion-toggle>
-      </ion-item>
-
-      <!-- Task Preferences -->
-      <ion-item lines="none" class="input-field">
-        <ion-label>Sort Tasks By</ion-label>
-        <ion-select [(ngModel)]="taskPreferences.sortBy" (ionChange)="updateTaskPreferences()">
-          <ion-select-option value="deadline">Deadline</ion-select-option>
-          <ion-select-option value="subject">Subject</ion-select-option>
-          <ion-select-option value="completion">Completion</ion-select-option>
-        </ion-select>
+        <ion-label>Auto-sort by Deadline</ion-label>
+        <ion-toggle 
+          slot="end" 
+          [(ngModel)]="autoSort" 
+          (ionChange)="updateAutoSort()">
+        </ion-toggle>
       </ion-item>
 
     </ion-card-content>
   </ion-card>
 
-  <!-- Profile & Logout Card -->
+  <!-- Reminder & Task Visibility Card -->
   <ion-card class="settings-card">
+    <ion-card-header>
+      <ion-card-title class="section-title">Reminder & Task Visibility</ion-card-title>
+    </ion-card-header>
+
     <ion-card-content>
-      <ion-item lines="none" button (click)="openProfile()">
-        <ion-icon name="person-circle-outline" slot="start"></ion-icon>
-        <ion-label>View / Edit Profile</ion-label>
+
+      <!-- Reminder Time Select -->
+      <ion-item lines="none" class="input-field" [class.reminder-disabled]="!taskReminders">
+        <ion-label>Reminder Time</ion-label>
+        <ion-select 
+          [(ngModel)]="notificationTime"
+          (ionChange)="updateNotificationTime()"
+          [disabled]="!taskReminders"
+          placeholder="Off">
+          <ion-select-option *ngFor="let option of reminderOptions" [value]="option.value">
+            {{ option.label }}
+          </ion-select-option>
+        </ion-select>
       </ion-item>
 
-      <ion-button expand="block" color="danger" class="action-btn" (click)="logout()">
-        Logout
-      </ion-button>
+      <!-- Task Visibility Multi-Select -->
+      <ion-item lines="none" class="input-field">
+        <ion-label>Task Visibility</ion-label>
+        <ion-select [(ngModel)]="selectedTaskVisibility" multiple="true" (ionChange)="updateTaskVisibility()">
+          <ion-select-option value="notStarted">Not Started</ion-select-option>
+          <ion-select-option value="inProgress">In Progress</ion-select-option>
+          <ion-select-option value="completed">Completed</ion-select-option>
+          <ion-select-option value="pastDue">Past Due</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Action Buttons -->
+  <ion-card class="settings-card">
+    <ion-card-header>
+      <ion-card-title class="section-title">Actions</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <ion-item lines="none" class="input-field">
+        <ion-label>Clear Completed Tasks</ion-label>
+        <ion-button slot="end" size="small" (click)="confirmClearCompleted()">
+          Clear
+        </ion-button>
+      </ion-item>
+
+      <ion-item lines="none" class="input-field">
+        <ion-label>Logout</ion-label>
+        <ion-button slot="end" size="small" (click)="logout()">
+          Logout
+        </ion-button>
+      </ion-item>
+
     </ion-card-content>
   </ion-card>
 
 </ion-content>
-
-
