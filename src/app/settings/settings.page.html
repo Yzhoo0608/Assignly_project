@@ -90,6 +90,15 @@
 
     <ion-card-content>
 
+      <!-- Upgrade to Pro -->
+      <ion-item lines="none" class="input-field">
+        <ion-label>Upgrade to Pro</ion-label>
+        <ion-button slot="end" size="small" (click)="goPro()">
+          Upgrade
+        </ion-button>
+      </ion-item>
+
+      <!-- Clear Completed Tasks -->
       <ion-item lines="none" class="input-field">
         <ion-label>Clear Completed Tasks</ion-label>
         <ion-button slot="end" size="small" (click)="confirmClearCompleted()">
@@ -97,6 +106,7 @@
         </ion-button>
       </ion-item>
 
+      <!-- Delete Account -->
       <ion-item lines="none" class="input-field">
         <ion-label>Delete Account</ion-label>
         <ion-button slot="end" size="small" (click)="confirmDeleteAccount()">
@@ -104,13 +114,15 @@
         </ion-button>
       </ion-item>
 
+      <!-- Logout -->
       <ion-item lines="none" class="input-field">
         <ion-label>Logout</ion-label>
         <ion-button slot="end" size="small" (click)="logout()">
           Logout
         </ion-button>
       </ion-item>
+
     </ion-card-content>
-    
   </ion-card>
+
 </ion-content>

@@ -10,6 +10,7 @@ import { TaskService } from '../services/task.service';
 import { NotificationService } from '../services/notification.service';
 import { firstValueFrom } from 'rxjs';
 import { Capacitor } from '@capacitor/core';
+import { AdService } from '../services/ad';
 
 @Component({
   selector: 'app-settings',
@@ -44,7 +45,8 @@ export class SettingsPage implements OnInit {
     private notificationService: NotificationService,
     private router: Router,
     private alertCtrl: AlertController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private adService: AdService
   ) {}
 
   ngOnInit() {
@@ -165,6 +167,19 @@ export class SettingsPage implements OnInit {
   async updateAutoSort() {
     const uid = this.authService.getCurrentUser()!.uid;
     await this.authService.updateSettings(uid, { autoSort: this.autoSort });
+  }
+
+  // ---------------------------------------------------
+  // GoPro 
+  // ---------------------------------------------------
+  async goPro() {
+    await this.adService.purchasePro();
+    const alert = await this.alertCtrl.create({
+      header: 'Upgrade Complete',
+      message: 'You are now a Pro user and have unlocked Task Priorities',
+      buttons: ['OK']
+    });
+    await alert.present();
   }
 
   // ---------------------------------------------------

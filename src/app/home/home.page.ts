@@ -336,20 +336,14 @@ export class HomePage implements OnInit, OnDestroy {
     this.applyFilter();
   }
 
+  // Get task priority class for styling
   getPriorityClass(task: Task): string {
     return `priority-${task.priority || 'normal'}`;
   }
 
-  showAd() { this.adService.showInterstitial(); }
-
-  async goPro() {
-    await this.adService.purchasePro();
-    const alert = await this.alertCtrl.create({
-      header: 'Upgrade Complete',
-      message: 'You are now a Pro user and have unlocked Task Priorities',
-      buttons: ['OK']
-    });
-    await alert.present();
+  // Show ad (still on home page)
+  showAd() {
+    this.adService.showInterstitial();
   }
 }
 
