@@ -143,13 +143,13 @@ export class ProfilePage implements OnInit {
           console.error('Share Failed:', err);
         }
       } else {
-        // Fallback: copy to clipboard
+        // Copy to clipboard
         navigator.clipboard.writeText(`${profileText} ${profileUrl}`).then(() => {
           alert('Profile Info Copied to Clipboard');
         });
       }
     } else {
-      // Native share via Capacitor
+      // Native share using Capacitor
       await this.uxService.shareProfile(this.user.name, this.user.avatar);
     }
   }

@@ -98,7 +98,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.proStatusSub?.unsubscribe();
   }
 
-  /** --- MARK TASKS AS PAST DUE --- */
+  /** Mark tasks as past due */
   async updatePastDueTasks() {
     const now = Date.now();
     let hasChanges = false;
@@ -119,7 +119,7 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  /** --- FILTER & SORT TASKS --- */
+  /** Filter & Sort Tasks */
   applyFilter() {
     let filtered = [...this.allTasks];
 

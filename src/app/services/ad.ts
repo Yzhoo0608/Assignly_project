@@ -1,7 +1,7 @@
 // src/app/services/ad.ts
 import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular';
-import { AuthService } from './auth.service'; // <-- Import AuthService
+import { AuthService } from './auth.service'; 
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -15,14 +15,14 @@ export class AdService {
 
   constructor(
     private platform: Platform,
-    private authService: AuthService // <-- Inject AuthService
+    private authService: AuthService 
   ) {
     // Log the simulation message on init
     this.init();
     
-    // Map the user$ observable to a simple boolean
+    
     this.proStatus$ = this.authService.user$.pipe(
-      map(user => user?.isPro || false) // true if user is pro, false otherwise
+      map(user => user?.isPro || false) 
     );
   }
 
@@ -35,16 +35,16 @@ export class AdService {
     }
   }
 
- // Show interstitial ad (simulated for non-Pro users)
+ // Show interstitial ad 
   showInterstitial() {
     const user = this.authService['userSubject'].getValue(); 
     const isPro = user?.isPro || false;
     
     if (isPro) {
-      return; // Don't show for pro users
+      return; 
     }
     
-    console.log('[AdService] SIMULATING: Showing Interstitial Ad...'); // No ads for Pro users
+    console.log('[AdService] SIMULATING: Showing Interstitial Ad...'); 
   }
 
   // Upgrade user to Pro

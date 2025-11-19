@@ -24,9 +24,7 @@ import {
 } from '@angular/fire/firestore';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-// ---------------------------
-// TYPES
-// ---------------------------
+// Types
 export type SortOption = 'deadline' | 'subject' | 'completion';
 export type TaskStatus = 'not started' | 'in progress' | 'completed' | 'pastDue';
 
@@ -71,9 +69,7 @@ export interface AppUser {
   };
 }
 
-// ---------------------------
-// SERVICE
-// ---------------------------
+// Main AuthService
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   // Firebase Auth & Firestore instances
@@ -88,9 +84,7 @@ export class AuthService {
     this.initAuthListener(); // Start listening to auth state changes
   } 
 
-  // ---------------------------
-  // AUTH SECTION
-  // ---------------------------
+  // Listen to auth state changes
   private initAuthListener() {
     // Fires whenever the user logs in/out
     onAuthStateChanged(this.auth, async (user) => {
@@ -155,7 +149,7 @@ export class AuthService {
     const user = userCredential.user;
     let appUser = await this.loadUserProfile(user.uid); // Load existing profile
 
-    // If no profile exists, create default one
+    // create default profile if none exists
     if (!appUser) {
       const defaultProfile = {
         name: user.displayName || '',
@@ -262,10 +256,7 @@ export class AuthService {
   }
 
 
-  // ---------------------------
-  // TASK SECTION (per-user)
-  // ---------------------------
-
+  // Task Management Section
   async addTask(uid: string, task: Task): Promise<Task> {
     const tasksCol = collection(this.firestore, 'users', uid, 'tasks');
     const taskDoc = await addDoc(tasksCol, {
@@ -307,7 +298,7 @@ export class AuthService {
     return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as Task) }));
   }
 
-  // Update user's task progress counts
+  // Update user task progress counts
   private async updateProgress(uid: string) {
     const tasksCol = collection(this.firestore, 'users', uid, 'tasks');
     const totalCount = (await getCountFromServer(tasksCol)).data().count;
@@ -334,10 +325,6 @@ export class AuthService {
     this.userSubject.next(updatedProfile);
   }
 
-  // ---------------------------
-  // User Delete Account
-  // --------------------------  
-
   // Delete all tasks of this user
   private async deleteAllTasks(uid: string) {
     const tasksCol = collection(this.firestore, 'users', uid, 'tasks');
@@ -362,23 +349,23 @@ export class AuthService {
     }
   }
 
-  // Main function to delete EVERYTHING
+  // Main function to delete everything from user account
   async deleteAccount() {
     const user = this.auth.currentUser;
     if (!user) return;
 
     const uid = user.uid;
 
-    // 1. Delete Tasks
+    // Delete Tasks
     await this.deleteAllTasks(uid);
 
-    // 2. Delete Firestore User Document
+    // Delete Firestore User Document
     await this.deleteUserDocument(uid);
 
-    // 3. Delete Auth Account
+    // Delete Auth Account
     await this.deleteAuthAccount();
 
-    // 4. Clear local state
+    // Clear local state
     this.userSubject.next(null);
   }
 }

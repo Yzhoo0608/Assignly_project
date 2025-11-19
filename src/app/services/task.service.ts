@@ -23,7 +23,7 @@ export class TaskService {
     });
   }
 
-  /** Load cached tasks from localStorage */
+  // Load cached tasks from localStorage
   private loadCachedTasks() {
     const cached = localStorage.getItem(this.CACHE_KEY);
     if (cached) {
@@ -36,13 +36,13 @@ export class TaskService {
     }
   }
 
-  /** Cache tasks to localStorage */
+  // Cache tasks to localStorage 
   private cacheTasks(tasks: Task[]) {
     localStorage.setItem(this.CACHE_KEY, JSON.stringify(tasks));
     console.log('Tasks cached/updated');
   }
 
-  /** Normalize task object */
+  // Normalize task object structure
   private normalizeTask(task: any): Task {
     return {
       id: task.id,
@@ -53,7 +53,7 @@ export class TaskService {
     };
   }
 
-  /** Load tasks from Firestore */
+  // Load tasks from Firestore 
   private async loadTasks(uid: string) {
     try {
       const tasksCol = collection(this.firestore, 'users', uid, 'tasks');
@@ -67,7 +67,7 @@ export class TaskService {
     }
   }
 
-  /** Get current logged-in user */
+  // Get current logged in user
   private async getCurrentUser(): Promise<AppUser> {
     const user = await firstValueFrom(this.authService.user$);
     if (!user) throw new Error('User not logged in');
@@ -105,18 +105,16 @@ export class TaskService {
         updatedAt: new Date(),
       });
 
-      // Swap the Temp ID for the Real Firestore ID if successful
+      // Change the Temporary ID for the Real Firestore ID if successful
       const realId = docRef.id;
       
       const updatedTasks = this._tasks.value.map(t => {
-        // Find the temp task and give it the real ID
         if (t.id === tempId) {
           return { ...t, id: realId };
         }
         return t;
       });
 
-      // Update state with the real ID
       this._tasks.next(updatedTasks);
       this.cacheTasks(updatedTasks);
       
@@ -125,16 +123,15 @@ export class TaskService {
 
     } catch (err) {
       console.warn('Offline: Task added locally only. Will sync when online/reloaded.', err);
-      // Return the temp task so the app can keep working
       return newTask;
     }
   }
 
-  /** Update an existing task */
+  // Update an existing task 
   async updateTask(task: Task) {
     if (!task.id) throw new Error('Task ID required');
 
-    // Update local immediately
+    // Update local UI 
     const updatedTasks = this._tasks.value.map(t =>
       t.id === task.id ? { ...t, ...task } : t
     );
@@ -157,9 +154,9 @@ export class TaskService {
     }
   }
 
-  /** Delete a task */
+  // Delete a task
   async deleteTask(task: Task) {
-    // Remove from BehaviorSubject immediately
+    // Remove from BehaviorSubject 
     const updated = this._tasks.value.filter(t => t.id !== task.id);
     this._tasks.next(updated);
     this.cacheTasks(updated);
@@ -176,24 +173,23 @@ export class TaskService {
     }
   }
 
-  /** Public method to get all tasks for current user (async) */
+  // Method to get all tasks for current user 
   async getTasks(): Promise<Task[]> {
-    const user = await this.getCurrentUser(); // uses existing private method
+    const user = await this.getCurrentUser(); 
     const tasksCol = collection(this.firestore, 'users', user.uid, 'tasks');
     const snapshot = await getDocs(tasksCol);
     return snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as Task) }));
   }
 
-  /** Add task locally with a temporary ID */
+  // Add task locally with a temporary ID 
   addTaskLocally(task: Task) {
-    // Assign a temporary ID to distinguish from Firestore ID
     const tempTask = { ...task, id: 'temp-' + Date.now() };
     const current = this._tasks.value;
     this._tasks.next([...current, tempTask]);
-    return tempTask; // return for reference if needed
+    return tempTask; 
   }
   
-  /** Delete all completed tasks for the current user */
+  // Delete all completed tasks for the current user 
   async deleteCompletedTasks(uid?: string) {
     const user = uid ? await firstValueFrom(this.authService.user$) : await this.getCurrentUser();
     const tasks = await this.getTasks();

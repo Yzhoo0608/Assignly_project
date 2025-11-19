@@ -15,6 +15,7 @@ import { AuthService, AppUser } from '../services/auth.service';
 export class LoginPage {
   email = '';
   name = '';
+  
   password = '';
   isRegistering = false;
   errorMessage = '';

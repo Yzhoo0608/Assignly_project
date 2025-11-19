@@ -19,7 +19,7 @@
 
     <form (ngSubmit)="submit()">
 
-      <!-- Name (Register Mode Only) -->
+      <!-- Name  -->
       <ion-item lines="none" class="input-field" *ngIf="isRegistering">
         <ion-label position="floating">Full Name</ion-label>
         <ion-input [(ngModel)]="name" name="name" required></ion-input>
