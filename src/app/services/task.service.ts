@@ -74,23 +74,60 @@ export class TaskService {
     return user;
   }
 
-  /** Add a new task */
+  // Add a new task with UI update
   async addTask(task: Task): Promise<Task> {
-    const user = await this.getCurrentUser();
-    const tasksCol = collection(this.firestore, 'users', user.uid, 'tasks');
-    const docRef = await addDoc(tasksCol, {
-      subject: task.subject,
-      status: task.status,
-      deadline: task.deadline,
-      priority: task.priority || 'normal',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    // Generate a temporary ID
+    const tempId = 'temp-' + Date.now();
+    
+    // Create the new task object locally
+    const newTask: Task = { 
+      ...task, 
+      id: tempId,
+      priority: task.priority || 'normal'
+    };
 
-    const newTask: Task = { ...task, id: docRef.id };
-    this._tasks.next([...this._tasks.value, newTask]);
+    // Update Local UI 
+    const currentTasks = this._tasks.value;
+    this._tasks.next([...currentTasks, newTask]);
     this.cacheTasks(this._tasks.value);
-    return newTask;
+
+    // Send to Firestore in the background
+    try {
+      const user = await this.getCurrentUser();
+      const tasksCol = collection(this.firestore, 'users', user.uid, 'tasks');
+      
+      const docRef = await addDoc(tasksCol, {
+        subject: task.subject,
+        status: task.status,
+        deadline: task.deadline,
+        priority: task.priority || 'normal',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // Swap the Temp ID for the Real Firestore ID if successful
+      const realId = docRef.id;
+      
+      const updatedTasks = this._tasks.value.map(t => {
+        // Find the temp task and give it the real ID
+        if (t.id === tempId) {
+          return { ...t, id: realId };
+        }
+        return t;
+      });
+
+      // Update state with the real ID
+      this._tasks.next(updatedTasks);
+      this.cacheTasks(updatedTasks);
+      
+      // Return the final object
+      return { ...newTask, id: realId };
+
+    } catch (err) {
+      console.warn('Offline: Task added locally only. Will sync when online/reloaded.', err);
+      // Return the temp task so the app can keep working
+      return newTask;
+    }
   }
 
   /** Update an existing task */
