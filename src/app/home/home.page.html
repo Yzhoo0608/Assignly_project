@@ -51,16 +51,20 @@
 
         <!-- Subject -->
         <ion-item>
-          <ion-label position="stacked">Subject</ion-label>
-          <ion-note color="danger" *ngIf="subjectError">{{ subjectError }}</ion-note>
-          <ion-note color="danger" *ngIf="duplicateError">{{ duplicateError }}</ion-note>
+          <ion-label position="stacked">
+            Subject
+            <ion-note color="danger" *ngIf="subjectError">{{ subjectError }}</ion-note>
+            <ion-note color="danger" *ngIf="duplicateError">{{ duplicateError }}</ion-note>
+          </ion-label>
           <ion-input formControlName="subject" placeholder="Enter task subject"></ion-input>
         </ion-item>
 
         <!-- Deadline -->
         <ion-item>
-          <ion-label position="stacked">Deadline</ion-label>
-          <ion-note color="danger" *ngIf="deadlineError">{{ deadlineError }}</ion-note>
+          <ion-label position="stacked">
+            Deadline
+            <ion-note color="danger" *ngIf="deadlineError">{{ deadlineError }}</ion-note>
+          </ion-label>
           <ion-datetime
             formControlName="deadline"
             [min]="minDate"

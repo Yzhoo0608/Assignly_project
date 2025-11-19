@@ -333,4 +333,52 @@ export class AuthService {
     const updatedProfile = await this.loadUserProfile(uid);
     this.userSubject.next(updatedProfile);
   }
+
+  // ---------------------------
+  // User Delete Account
+  // --------------------------  
+
+  // Delete all tasks of this user
+  private async deleteAllTasks(uid: string) {
+    const tasksCol = collection(this.firestore, 'users', uid, 'tasks');
+    const snapshot = await getDocs(tasksCol);
+
+    for (const docSnap of snapshot.docs) {
+      await deleteDoc(doc(this.firestore, `users/${uid}/tasks/${docSnap.id}`));
+    }
+  }
+
+  // Delete Firestore root user document
+  private async deleteUserDocument(uid: string) {
+    const userDoc = doc(this.firestore, `users/${uid}`);
+    await deleteDoc(userDoc);
+  }
+
+  // Delete Firebase Authentication account
+  private async deleteAuthAccount() {
+    const user = this.auth.currentUser;
+    if (user) {
+      return user.delete();
+    }
+  }
+
+  // Main function to delete EVERYTHING
+  async deleteAccount() {
+    const user = this.auth.currentUser;
+    if (!user) return;
+
+    const uid = user.uid;
+
+    // 1. Delete Tasks
+    await this.deleteAllTasks(uid);
+
+    // 2. Delete Firestore User Document
+    await this.deleteUserDocument(uid);
+
+    // 3. Delete Auth Account
+    await this.deleteAuthAccount();
+
+    // 4. Clear local state
+    this.userSubject.next(null);
+  }
 }

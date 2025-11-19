@@ -200,6 +200,29 @@ export class SettingsPage implements OnInit {
     this.router.navigate(['/profile']);
   }
 
+  // Delete User Account
+  async confirmDeleteAccount() {
+    const alert = await this.alertCtrl.create({
+      header: 'Delete Account?',
+      message: 'This will permanently remove all your data.',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Delete',
+          handler: () => this.deleteAccount()
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async deleteAccount() {
+    await this.authService.deleteAccount();
+    this.router.navigate(['/login']);
+  }
+
+  // Logout
   async logout() {
     const alert = await this.alertCtrl.create({
       header: 'Logout',

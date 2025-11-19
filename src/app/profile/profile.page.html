@@ -29,10 +29,28 @@
   <ion-card class="profile-card">
 
     <ion-card-header>
-      <ion-card-title class="section-title">Your Information</ion-card-title>
+      <ion-card-title class="section-title">Your Profile</ion-card-title>
+      <div class="title-underline"></div>
     </ion-card-header>
 
     <ion-card-content>
+
+      <!-- Progress Section -->
+      <div class="progress-section">
+        <h3>Your Progress Overview</h3>
+
+        <p class="progress-info">
+          {{ user.completedTasks }} / {{ user.totalTasks }} tasks completed
+        </p>
+
+        <ion-progress-bar
+          class="progress-bar"
+          [value]="(user.completedTasks ?? 0) / (user.totalTasks ?? 1)">
+        </ion-progress-bar>
+      </div>
+
+      <!-- Section Title -->
+      <h4 class="info-title">Your Information</h4>
 
       <!-- Full Name -->
       <ion-item lines="none" class="input-field">
@@ -52,7 +70,7 @@
         <ion-textarea [(ngModel)]="user.bio"></ion-textarea>
       </ion-item>
 
-      <!-- Course (you can remove later) -->
+      <!-- Course -->
       <ion-item lines="none" class="input-field">
         <ion-label position="stacked">Course</ion-label>
         <ion-input [(ngModel)]="user.course"></ion-input>
@@ -60,33 +78,20 @@
 
       <!-- Pro Badge -->
       <div class="pro-badge" *ngIf="user?.isPro">
-        <ion-icon name="star"></ion-icon>
+        <ion-icon name="star" color="warning"></ion-icon>
         <span>Pro User</span>
       </div>
 
-      <!-- Progress Section -->
-      <div class="progress-section">
-        <h3>Your Progress Overview</h3>
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <ion-button expand="block" class="save-btn" (click)="saveProfile()">
+          Save Profile
+        </ion-button>
 
-        <p class="progress-info">
-          {{user.completedTasks}} / {{user.totalTasks}} tasks completed
-        </p>
-
-        <ion-progress-bar
-          class="progress-bar"
-          [value]="(user.completedTasks ?? 0) / (user.totalTasks ?? 1)">
-        </ion-progress-bar>
+        <ion-button expand="block"  class="share-btn" (click)="shareProfile()">
+          Share Your Profile
+        </ion-button>
       </div>
-
-      <!-- Save Profile Button -->
-      <ion-button expand="block" class="save-btn" (click)="saveProfile()">
-        Save Profile
-      </ion-button>
-
-      <!-- Share Profile Button -->
-      <ion-button expand="block" color="secondary" class="share-btn" (click)="shareProfile()">
-        Share Profile
-      </ion-button>
 
     </ion-card-content>
   </ion-card>

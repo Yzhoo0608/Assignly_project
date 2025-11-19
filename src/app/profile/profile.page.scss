@@ -55,8 +55,26 @@ ion-content {
 
 /* Section Title */
 .section-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
+  color: #444;
+}
+
+.title-underline {
+    align-self: flex-start;
+    width: 108px; 
+    height: 2px; 
+    background: linear-gradient(90deg, #2c2c2c);
+    border-radius: 10px;
+    margin-top: 10px; 
+  }
+
+.info-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  margin-top: 50px;
+  margin-left: 10px;
   color: #444;
 }
 
@@ -96,27 +114,36 @@ ion-content {
   color: #b2493d;
 }
 
-/* Pro Badge */
+/* Pro-badge */
 .pro-badge {
-  --padding-start: 0px;
-  --padding-end: 100px;
-  --border-radius: 12px;
-  display: flex;                /* Flex layout */
-  justify-content: center;      /* Center content horizontally */
-  align-items: center;          /* Center content vertically */
-  margin: 20px auto;            /* Center badge in parent container */
-  width: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 20px auto;
+  padding: 10px 20px;
   background: #ffe9e1;
   color: #b2493d;
-  padding: 10px 50px;
-  border-radius: 20px;
-  font-weight: 700;
-  text-align: center;
+  border-radius: 15px;
+  font-weight: 900;
+  width: fit-content;
+  margin-top: 20px;
 }
 
-.pro-badge ion-icon {
+.pro-icon {
   font-size: 20px;
-  margin-right: 8px;            /* Space between icon and text */
+  color: #b2493d;
+  width: auto !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+
+.pro-badge span {
+  display: inline-block;
+  line-height: 20px;             /* matches icon height */
+  vertical-align: middle;
+  margin-right: 25px;
+  margin-left: 15px;
 }
 
 /* Progress Section */
@@ -129,7 +156,7 @@ ion-content {
 .progress-section h3 {
   font-size: 17px;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   color: #444;
 }
 
@@ -161,9 +188,10 @@ ion-button.share-btn {
   height: 43px;
   font-size: 13px;
   border-radius: 12px;
-  --background: #4a90e2;
+  --background: #8b8484;
   color: #fff;
   font-weight: 700;
   width: 500px;
   display: block;
 }
+

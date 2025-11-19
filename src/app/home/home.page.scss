@@ -152,19 +152,19 @@
 
       display: flex;
       align-items: center;
-
-      .error-message {
-        color: #d32f2f;              
+      gap: 0.5rem; 
+      ion-note {
+        color: #d32f2f;
         font-size: 0.8rem;
-        font-weight: 300;            
-        font-style: italic;           
+        font-weight: 300;
+        font-style: italic;
         font-family: 'Helvetica Neue', Arial, sans-serif;
-        margin-left: 0.9rem;
+        max-width: 150px; 
+        white-space: normal; 
       }
     }
 
     ion-input,
-    ion-select,
     ion-datetime {
       --padding-start: 10px;
       font-size: 0.95rem;
@@ -207,6 +207,7 @@
   background: #fff;
   box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
+
 
 /* --- Task Sections Tabs --- */
 .task-sections {

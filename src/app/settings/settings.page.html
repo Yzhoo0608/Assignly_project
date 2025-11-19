@@ -98,13 +98,19 @@
       </ion-item>
 
       <ion-item lines="none" class="input-field">
+        <ion-label>Delete Account</ion-label>
+        <ion-button slot="end" size="small" (click)="confirmDeleteAccount()">
+          Delete
+        </ion-button>
+      </ion-item>
+
+      <ion-item lines="none" class="input-field">
         <ion-label>Logout</ion-label>
         <ion-button slot="end" size="small" (click)="logout()">
           Logout
         </ion-button>
       </ion-item>
-
     </ion-card-content>
+    
   </ion-card>
-
 </ion-content>
