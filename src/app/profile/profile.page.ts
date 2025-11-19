@@ -140,12 +140,12 @@ export class ProfilePage implements OnInit {
         try {
           await navigator.share({ title: 'My Profile', text: profileText, url: profileUrl });
         } catch (err) {
-          console.error('Share failed:', err);
+          console.error('Share Failed:', err);
         }
       } else {
         // Fallback: copy to clipboard
         navigator.clipboard.writeText(`${profileText} ${profileUrl}`).then(() => {
-          alert('Profile info copied to clipboard!');
+          alert('Profile Info Copied to Clipboard');
         });
       }
     } else {

@@ -31,7 +31,7 @@ export class LoginPage {
     // Basic validation
     if (!this.email || !this.password || (this.isRegistering && !this.name)) {
       const toast = await this.toastCtrl.create({
-        message: 'Please fill in all required fields!',
+        message: 'Please Fill In All Required Fields.',
         duration: 1500,
         color: 'warning',
       });
@@ -55,7 +55,7 @@ export class LoginPage {
 
       // Show success toast
       const toast = await this.toastCtrl.create({
-        message: `${this.isRegistering ? 'Registration' : 'Login'} successful!`,
+        message: `${this.isRegistering ? 'Registration' : 'Login'} successful`,
         duration: 1200,
         color: 'success',
       });
@@ -68,7 +68,7 @@ export class LoginPage {
 
     } catch (err: any) {
       console.error(err);
-      this.errorMessage = err.message || 'Something went wrong';
+      this.errorMessage = err.message || 'Something Went Wrong';
       const toast = await this.toastCtrl.create({
         message: this.errorMessage,
         duration: 2000,

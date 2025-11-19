@@ -198,7 +198,7 @@ export class SettingsPage implements OnInit {
             await this.taskService.deleteCompletedTasks(uid);
 
             const toast = await this.toastCtrl.create({
-              message: 'Completed tasks cleared',
+              message: 'Completed Tasks Cleared',
               duration: 1500,
               color: 'success'
             });
@@ -248,6 +248,17 @@ export class SettingsPage implements OnInit {
           text: 'Logout',
           handler: async () => {
             await this.authService.logout();
+
+            // Show success toast
+            const toast = await this.toastCtrl.create({
+              message: 'Logged Out Successfully',
+              duration: 1500,
+              color: 'medium', 
+              position: 'bottom' 
+            });
+            toast.present();
+
+            // Navigate to login page
             this.router.navigateByUrl('/login', { replaceUrl: true });
           }
         }
@@ -256,4 +267,5 @@ export class SettingsPage implements OnInit {
 
     await alert.present();
   }
+
 }

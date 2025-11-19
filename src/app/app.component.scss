@@ -1,1 +1,30 @@
 //src/app/app.component.scss
+
+ion-menu {
+  --width: 250px; 
+  --background: #fff;  
+
+    ion-toolbar {
+    --background: #fff;  
+    --color: #d9d8d8;
+    ion-title {
+        font-weight: 600;   
+        font-size: 1.2rem;  
+        color: #fff;     
+    }
+    }
+
+    ion-list {
+        margin-top: 10px;
+
+        ion-item {
+        margin: 6px 12px;
+        padding: 12px 16px;
+        font-weight: 600;       
+        font-size: 1rem;
+        color: #432a2a;         
+
+        }
+    }
+}
+

@@ -40,6 +40,8 @@
     justify-content: center;
     align-items: center;
     animation: fadeIn 0.4s ease;
+    margin-top: 20px;
+    margin-bottom: 20px;
 
     .modern-searchbar {
       --background: #fff;
@@ -232,7 +234,6 @@
       padding: 8px 14px;
       border-radius: 12px;
 
-      /* target the selected button */
       &[checked] {
         background-color: #b2493d;
         color: #fff;
@@ -240,7 +241,6 @@
     }
   }
 }
-
 
 /* Task List */
 .task-list {
@@ -313,9 +313,18 @@
     }
   }
 
-  &.priority-high { border-left-color: var(--ion-color-danger); }
-  &.priority-normal { border-left-color: var(--ion-color-warning); }
-  &.priority-low { border-left-color: var(--ion-color-success); }
+  /* Task priority colors */
+  &.priority-high {
+    border-left-color: #c47144;
+  }
+
+  &.priority-normal {
+    border-left-color: #be7b7b; 
+  }
+
+  &.priority-low {
+    border-left-color: #5ba6d8; 
+  }
 }
 
 /* Task Header */

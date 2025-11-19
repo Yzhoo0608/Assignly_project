@@ -51,7 +51,7 @@ export class AppComponent implements OnInit {
           handler: async () => {
             await this.authService.logout();
             const toast = await this.toastCtrl.create({
-              message: 'Logged out successfully!',
+              message: 'Logged Out Successfully',
               duration: 1200,
               color: 'medium',
             });

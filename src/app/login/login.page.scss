@@ -8,21 +8,20 @@ ion-content {
   --padding-bottom: 50px;
 }
 
-
 .login-container {
   height: 100%;
   display: flex;
-  flex-direction: column; /* stack welcome text and card vertically */
-  justify-content: center; /* vertical center */
-  align-items: center;     /* horizontal center */
-  text-align: center;      /* center text inside children */
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center;     
+  text-align: center;      
   width: 100%;
 }
 
 /* Welcome Text */
 .top-title {
   color: #ffffff;
-  margin-bottom: 40px;
+  margin-bottom: 50px;
 }
 
 .top-title h1 {
@@ -72,18 +71,17 @@ ion-content {
 .input-field {
   margin-top: 10px;
   border-radius: 15px;
-  --background: #ffffff;      /* set modern background by default */
+  --background: #ffffff;      
   padding: 4px 10px;
   font-size: 14px;
   --box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  border: 2px solid #e0e0e0;  /* subtle border */
+  border: 2px solid #e0e0e0; 
   transition: all 0.3s ease;
 }
 
-/* Focus effect - overrides base styles when clicked */
 .input-field:focus-within {
   --box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-  border: 2px solid #b2493d;  /* accent color on focus */
+  border: 2px solid #b2493d;  
 }
 
 .input-field ion-label {

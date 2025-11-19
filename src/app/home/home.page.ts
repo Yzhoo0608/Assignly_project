@@ -223,7 +223,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.applyFilter();
 
     const toast = await this.toastCtrl.create({
-      message: 'Task saved successfully!',
+      message: 'Task Saved Successfully',
       duration: 1200,
       color: 'success',
     });
@@ -257,7 +257,7 @@ export class HomePage implements OnInit, OnDestroy {
             try {
               await this.taskService.deleteTask(task);
               const toast = await this.toastCtrl.create({
-                message: 'Task deleted successfully!',
+                message: 'Task Deleted Successfully',
                 duration: 1200,
                 color: 'danger',
               });

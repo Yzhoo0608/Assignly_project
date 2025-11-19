@@ -20,7 +20,7 @@ ion-content {
 /* Welcome Card */
 .welcome-card h2 {
   margin-top: 20px;
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 700;
   color: #4e4a4a;
 }
@@ -32,7 +32,7 @@ ion-content {
   color: #555;
 }
 
-/* Input Fields (toggles, selects, clickable items) */
+/* Input Fields */
 .input-field {
   --background: #fff;
   --padding-start: 12px;
@@ -57,7 +57,6 @@ ion-content {
   font-weight: 600;
 }
 
-/* Make ion-item with button behave like other input fields */
 .input-field[button] {
   --background: #fff;
   border-radius: 15px;
@@ -66,39 +65,37 @@ ion-content {
   margin-bottom: 12px;
   font-size: 15px;
   font-weight: 600;
-  --ripple-color: rgba(178, 73, 61, 0.15); /* subtle ripple on click */
+  --ripple-color: rgba(178, 73, 61, 0.15); 
   display: flex;
   align-items: center;
-  justify-content: space-between; /* label left, icon right */
+  justify-content: space-between; 
 }
 
 /* Buttons inside input-field items */
 .input-field ion-button {
-  --background: #b2493d;   /* same color as toggle */
-  --color: #fff;            /* white text */
-  font-size: 13px;          /* slightly smaller text */
+  --background: #b2493d;   
+  --color: #fff;           
+  font-size: 13px;          
   font-weight: 600;
   border-radius: 12px;
-  height: 32px;             /* slightly smaller than before */
-  min-width: 100px;          /* consistent width for both buttons */
-  padding: 0 10px;          /* horizontal padding */
+  height: 32px;           
+  min-width: 100px;         
+  padding: 0 10px;         
   display: flex;
   align-items: center;
   justify-content: center;
   text-transform: capitalize;
-  margin-left: auto;        /* push button to the right */
+  margin-left: auto;       
 }
 
-/* Optional hover effect */
 .input-field ion-button:hover {
-  --background: #9c3b30; /* slightly darker on hover */
+  --background: #9c3b30; 
 }
 
-/* Ensure label left, select right */
 .input-field {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* pushes select to the right */
+  justify-content: space-between; 
   --padding-start: 12px;
   --padding-end: 12px;
   --background: #fff;
@@ -108,9 +105,8 @@ ion-content {
   height: 50px;
 }
 
-/* ion-select aligned to right */
 .input-field ion-select {
-  flex: 0 0 auto;     /* only as wide as needed */
+  flex: 0 0 auto;     
   width: auto;
   text-align: right;
 }
@@ -120,9 +116,9 @@ ion-content {
   border-radius: 12px;
   font-weight: 600;
   margin-top: 10px;
-  padding: 8px 12px; /* smaller padding */
-  font-size: 14px;    /* slightly smaller text */
-  height: auto;       /* prevent stretching */
+  padding: 8px 12px; 
+  font-size: 14px;    
+  height: auto;      
 }
 
 
