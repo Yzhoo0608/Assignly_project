@@ -3,21 +3,31 @@
 
 **Project overview:**
 
-Assignly is an Ionic Framework (Angular) cross-platform mobile web application.
-Users can create, view, update, and delete tasks in real time using the application, which functions as a task management system. Besides, this application ensures that users can access their previously loaded data even in out of an internet connection, offering an accurate and smooth experience in both online and offline settings. The project's goal is to create a digital task management system that deal with the inefficiencies of manual recording techniques.  Real-time synchronization and Firebase connection allow the system to improve workflow efficiency, ensure data consistency, and allow transparent progress tracking for all users. 
+Assignly is a mobile web app built on Angular's Ionic framework that works across platforms. Being a decent task management app, users can create, read, update and delete tasks in real-time. Its ability to load previously fetched data when there is no internet connection is one of the main features and this combined with being able to access the latest data makes offline and online experience has never been better.
+
+The aim of the project is to design a efficient digital task management system that addresses the limitations of manual tracking. Assignly leverages Firebase integration, real-time synchronization to streamline workflows, maintain data consistency, and allow users to track progress on tasks transparently.
 
 ---
 
 **Application feature:**
 
-- **Create function** - Users can add new tasks with subject, deadline, and status fields.
+Task management: 
+- Create, edit and delete tasks with ease easily.
+- Assign task status such as "Not Started," "In Progress," or "Done."
+- Access your tasks offline to keep your task management uninterrupted.
+  
+Real-Time Data Synchronization:
+- When connected to the Internet, any changes you made in the app will be propagated instantly to your other devices.
 
-- **View Tasks (Real-Time)** - Tasks are automatically updated in real time from Firebase Firestore without page refresh. 
-- **Update Tasks** - Allows users to modify existing task details (such as name, due date, or status). Changes are instantly updated in the Firestore database. 
-- **Remove Tasks** - Provides a quick way to remove unwanted tasks from the list. Once deleted, the task is immediately removed from Firestore and the live display. 
-- **Offline Caching** - Uses Ionic Storage to temporarily save task data locally on the device. When offline, users can still view their last synced task list. Once the connection is restored, live data syncs automatically. 
-- **Automatic Synchronization** - The app continuously synchronizes Firestore data with the local cache to ensure a smooth and consistent user experience. 
-- **Firebase intergration** - Securely connects to Firebase Firestore for data management, with test-mode access configured for assignment development.
+Offline Access:
+- You can view and edit tasks offline, and your data will be synchronized as soon as you are online again.
+
+User profile:
+- Modify user details such as name, e-mail, bio, etc., and monitor the completion status of individual tasks.
+
+Firebase Integration:
+- Data storage and synchronization in real time, for a unified task organization and progress monitoring.
+- Maintain data uniformity between devices. 
 
 ---
 
